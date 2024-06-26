@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:pagseguro_plugpag_flutter/adaptations/plug_pag_activation_data.dart';
 import 'package:pagseguro_plugpag_flutter/pagseguro_plugpag_flutter.dart';
 
 void main() {
@@ -31,8 +32,12 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
+      platformVersion = (await _pagseguroPlugpagFlutterPlugin
+              .initializeAndActivatePinpad(PlugPagActivationData('749879')))
+          .toString();
       platformVersion =
-          await _pagseguroPlugpagFlutterPlugin.getPlatformVersion() ?? 'Unknown platform version';
+          (await _pagseguroPlugpagFlutterPlugin.isAuthenticated()).toString();
+      'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }

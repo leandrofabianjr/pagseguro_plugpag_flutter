@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- region PagSeguro -->
+    <uses-permission android:name="br.com.uol.pagseguro.permission.MANAGE_PAYMENTS"/>
+    <!-- endregion -->
+
     <application
         android:label="pagseguro_plugpag_flutter_example"
         android:name="${applicationName}"
@@ -24,6 +29,14 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <!-- region PagSeguro -->
+            <intent-filter>
+                <action android:name="br.com.uol.pagseguro.PAYMENT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <!-- endregion -->
+            
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

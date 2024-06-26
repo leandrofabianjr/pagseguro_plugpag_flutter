@@ -1,3 +1,5 @@
+import 'package:pagseguro_plugpag_flutter/adaptations/plug_pag_activation_data.dart';
+import 'package:pagseguro_plugpag_flutter/adaptations/plug_pag_initialization_result.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'pagseguro_plugpag_flutter_method_channel.dart';
@@ -8,7 +10,8 @@ abstract class PagseguroPlugpagFlutterPlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static PagseguroPlugpagFlutterPlatform _instance = MethodChannelPagseguroPlugpagFlutter();
+  static PagseguroPlugpagFlutterPlatform _instance =
+      MethodChannelPagseguroPlugpagFlutter();
 
   /// The default instance of [PagseguroPlugpagFlutterPlatform] to use.
   ///
@@ -25,5 +28,16 @@ abstract class PagseguroPlugpagFlutterPlatform extends PlatformInterface {
 
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
+  }
+
+  Future<bool> isAuthenticated() {
+    throw UnimplementedError('isAuthenticated() has not been implemented.');
+  }
+
+  Future<PlugPagInitializationResult> initializeAndActivatePinpad(
+    PlugPagActivationData data,
+  ) {
+    throw UnimplementedError(
+        'initializeAndActivatePinpad() has not been implemented.');
   }
 }
