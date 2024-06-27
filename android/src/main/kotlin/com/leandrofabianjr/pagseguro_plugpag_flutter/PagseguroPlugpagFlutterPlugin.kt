@@ -5,7 +5,7 @@ import io.flutter.plugin.common.MethodChannel
 
 /** PagseguroPlugpagFlutterPlugin */
 class PagseguroPlugpagFlutterPlugin : FlutterPlugin {
-    private val CHANNEL = "pagseguro_plugpag_flutter"
+    private val CHANNEL = "pagseguro_plugpag_flutter_channel"
 
     private lateinit var channel: MethodChannel
 

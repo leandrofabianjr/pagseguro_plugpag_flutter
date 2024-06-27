@@ -9,8 +9,10 @@ class PlugPagInitializationResult {
     required this.result,
   });
 
-  static PlugPagInitializationResult fromMethodChannel(
-      Map<dynamic, dynamic>? map) {
+  @override
+  factory PlugPagInitializationResult.fromMethodChannel(
+    Map<dynamic, dynamic>? map,
+  ) {
     return PlugPagInitializationResult(
       errorCode: map!['errorCode'].toString(),
       errorMessage: map['errorMessage'].toString(),

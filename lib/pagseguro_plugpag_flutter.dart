@@ -4,17 +4,20 @@ import 'package:pagseguro_plugpag_flutter/adaptations/plug_pag_initialization_re
 import 'pagseguro_plugpag_flutter_platform_interface.dart';
 
 class PagseguroPlugpagFlutter {
-  Future<String?> getPlatformVersion() {
-    return PagseguroPlugpagFlutterPlatform.instance.getPlatformVersion();
-  }
-
-  Future<bool> isAuthenticated() {
-    return PagseguroPlugpagFlutterPlatform.instance.isAuthenticated();
+  Future<bool> isAuthenticated() async {
+    final res = await PagseguroPlugpagFlutterPlatform.instance
+        .invokePlugPagMethod('isAuthenticated');
+    return res == true;
   }
 
   Future<PlugPagInitializationResult> initializeAndActivatePinpad(
-      PlugPagActivationData data) {
-    return PagseguroPlugpagFlutterPlatform.instance
-        .initializeAndActivatePinpad(data);
+    PlugPagActivationData data,
+  ) async {
+    final res =
+        await PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
+      'initializeAndActivatePinpad',
+      [data],
+    );
+    return PlugPagInitializationResult.fromMethodChannel(res);
   }
 }
