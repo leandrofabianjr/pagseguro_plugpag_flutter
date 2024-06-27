@@ -1,6 +1,8 @@
 // ignore_for_file: constant_identifier_names
 
-class PlugPagConstants {
+import 'plug_pag_methods.dart';
+
+class PlugPag with PlugPagMethods {
   static const int TYPE_CREDITO = 1;
   static const int TYPE_DEBITO = 2;
   static const int TYPE_VOUCHER = 3;

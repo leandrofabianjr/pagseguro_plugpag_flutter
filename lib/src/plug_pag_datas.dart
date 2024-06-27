@@ -1,4 +1,4 @@
-import 'package:pagseguro_plugpag_flutter/utils/mixins/to_method_channel.dart';
+import 'package:pagseguro_plugpag_flutter/src/utils/mixins/to_method_channel.dart';
 
 class PlugPagActivationData with ToMethodChannel {
   final String activationCode;

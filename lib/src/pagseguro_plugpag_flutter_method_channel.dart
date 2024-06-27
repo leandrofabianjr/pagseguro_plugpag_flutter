@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:pagseguro_plugpag_flutter/utils/mixins/to_method_channel.dart';
+import 'package:pagseguro_plugpag_flutter/src/utils/mixins/to_method_channel.dart';
 
 import 'pagseguro_plugpag_flutter_platform_interface.dart';
 
