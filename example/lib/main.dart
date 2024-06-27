@@ -67,6 +67,21 @@ class _PagseguroPlugpagFlutterExampleState
             }),
           ),
         ),
+        ListTile(
+          title: const Text('Desativar maquininha com código 749879'),
+          subtitle: const Text('deactivate'),
+          onTap: () => callMethod(
+            () => _plugPag
+                .deactivate(PlugPagActivationData('749879'))
+                .then((value) {
+              if (value.result == PlugPag.RET_OK) {
+                return const Text('Maquininha desativada');
+              } else {
+                return Text('Erro: ${value.errorCode} - ${value.errorMessage}');
+              }
+            }),
+          ),
+        )
       ]),
     );
   }

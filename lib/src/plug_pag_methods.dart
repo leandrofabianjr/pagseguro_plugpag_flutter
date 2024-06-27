@@ -19,4 +19,15 @@ mixin PlugPagMethods {
     );
     return PlugPagInitializationResult.fromMethodChannel(res);
   }
+
+  Future<PlugPagInitializationResult> deactivate(
+    PlugPagActivationData data,
+  ) async {
+    final res =
+        await PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
+      'deactivate',
+      [data],
+    );
+    return PlugPagInitializationResult.fromMethodChannel(res);
+  }
 }
