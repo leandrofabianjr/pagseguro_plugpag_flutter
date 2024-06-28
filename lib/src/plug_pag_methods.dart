@@ -30,4 +30,25 @@ mixin PlugPagMethods {
     );
     return PlugPagInitializationResult.fromMethodChannel(res);
   }
+
+  Future<List<PlugPagInstallment>> calculateInstallments(
+    String saleValue,
+    int installmentType,
+  ) async {
+    final res =
+        await PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
+      'calculateInstallments',
+      [saleValue, installmentType],
+    );
+    return (res as List)
+        .map((i) => PlugPagInstallment.fromMethodChannel(i))
+        .toList();
+  }
+
+  Future<PlugPagPrintResult> printFromFile(
+      PlugPagPrinterData printerData) async {
+    final res = await PagseguroPlugpagFlutterPlatform.instance
+        .invokePlugPagMethod('printFromFile', [printerData]);
+    return PlugPagPrintResult.fromMethodChannel(res);
+  }
 }

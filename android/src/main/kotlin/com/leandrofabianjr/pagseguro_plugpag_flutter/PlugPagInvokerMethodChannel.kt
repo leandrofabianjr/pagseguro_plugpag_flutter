@@ -19,16 +19,20 @@ class PlugPagInvokerMethodChannel(context: Context) : MethodCallHandler {
         plugPag = PlugPag(context)
     }
 
+    private fun getJavaType(p: Any?) = when (p?.javaClass?.name) {
+        "java.lang.Integer" -> Integer.TYPE
+        else -> p?.javaClass
+    }
+
     private fun instantiateDynamicClass(argMap: Map<*, *>): Any {
         val className = argMap["ppf_class"] as? String
         if (className !== null) {
             val classInvoker = Class.forName(className)
             if (argMap.containsKey("ppf_params")) {
                 val classConstructorParams = argMap["ppf_params"] as ArrayList<*>;
+                val classConstructorParamsTypes = classConstructorParams.map { p -> getJavaType(p) }
                 return classInvoker
-                    .getDeclaredConstructor(
-                        *classConstructorParams.map { p -> p?.javaClass }.toTypedArray()
-                    )
+                    .getDeclaredConstructor(*classConstructorParamsTypes.toTypedArray())
                     .newInstance(*classConstructorParams.toTypedArray())
             }
             return classInvoker.getDeclaredConstructor().newInstance()
@@ -36,8 +40,9 @@ class PlugPagInvokerMethodChannel(context: Context) : MethodCallHandler {
         throw ClassNotFoundException()
     }
 
-    private fun <T : Any> toHashMap(obj: T): HashMap<String, Any?> {
+    private fun toHashMap(obj: Any?): HashMap<String, Any?> {
         val map = HashMap<String, Any?>()
+        if (obj == null) return map
         for (prop in obj::class.memberProperties) {
             map[prop.name] = prop.getter.call(obj)
         }
@@ -47,16 +52,21 @@ class PlugPagInvokerMethodChannel(context: Context) : MethodCallHandler {
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         try {
             val plugPagMethodParams = processParams(call)
+            val plugPagMethodParamsTypes = plugPagMethodParams.map { p -> getJavaType(p) }
             val plugPagMethod = PlugPag::class.java.getMethod(
                 call.method,
-                *plugPagMethodParams.map { p -> p?.javaClass }.toTypedArray()
+                *plugPagMethodParamsTypes.toTypedArray()
             )
 
             CoroutineScope(Dispatchers.IO).launch {
                 kotlin.runCatching {
                     plugPagMethod.invoke(plugPag, *plugPagMethodParams.toTypedArray())
                 }.onSuccess {
-                    result.success(toHashMap(it).ifEmpty { it })
+                    if (it is ArrayList<*>) {
+                        result.success((it as List<*>).map { i -> toHashMap(i).ifEmpty { i } })
+                    } else {
+                        result.success(toHashMap(it).ifEmpty { it })
+                    }
                 }.onFailure { throw it }
             }
 
@@ -88,5 +98,4 @@ class PlugPagInvokerMethodChannel(context: Context) : MethodCallHandler {
         }
         return params
     }
-
 }

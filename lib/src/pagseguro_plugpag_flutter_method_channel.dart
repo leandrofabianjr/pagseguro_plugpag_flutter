@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:pagseguro_plugpag_flutter/src/utils/mixins/to_method_channel.dart';
+import 'package:pagseguro_plugpag_flutter/src/utils/interfaces/plug_pag_class_data.dart';
 
 import 'pagseguro_plugpag_flutter_platform_interface.dart';
 
@@ -18,7 +18,7 @@ class MethodChannelPagseguroPlugpagFlutter
       methodChannel.invokeMethod(
         methodName,
         methodParams
-            ?.map((p) => p is ToMethodChannel ? p.toMethodChannel() : p)
+            ?.map((p) => p is PlugPagClassData ? p.toMethodChannel() : p)
             .toList(),
       );
 }

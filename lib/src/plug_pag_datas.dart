@@ -1,16 +1,20 @@
-import 'package:pagseguro_plugpag_flutter/src/utils/mixins/to_method_channel.dart';
+import 'package:pagseguro_plugpag_flutter/src/utils/interfaces/plug_pag_class_data.dart';
 
-class PlugPagActivationData with ToMethodChannel {
+class PlugPagActivationData extends PlugPagClassData {
   final String activationCode;
-
   PlugPagActivationData(this.activationCode);
-
   @override
-  Map<String, dynamic> toMethodChannel() {
-    return {
-      "ppf_class":
-          "br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagActivationData",
-      "ppf_params": [activationCode]
-    };
-  }
+  String get className => 'PlugPagActivationData';
+  @override
+  List get params => [activationCode];
+}
+
+class PlugPagPrinterData extends PlugPagClassData {
+  final String filePath;
+  final int printerQuality, steps;
+  PlugPagPrinterData(this.filePath, this.printerQuality, this.steps);
+  @override
+  String get className => 'PlugPagPrinterData';
+  @override
+  List get params => [filePath, printerQuality, steps];
 }
