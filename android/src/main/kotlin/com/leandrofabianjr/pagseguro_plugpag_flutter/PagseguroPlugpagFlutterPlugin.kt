@@ -12,7 +12,7 @@ class PagseguroPlugpagFlutterPlugin : FlutterPlugin {
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, CHANNEL)
         channel.setMethodCallHandler(
-            PlugPagInvokerMethodChannel(flutterPluginBinding.applicationContext)
+            PlugPagMethodCallHandler(flutterPluginBinding.applicationContext, channel)
         )
     }
 

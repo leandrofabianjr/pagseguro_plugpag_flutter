@@ -1,5 +1,6 @@
 import 'pagseguro_plugpag_flutter_platform_interface.dart';
 import 'plug_pag_datas.dart';
+import 'plug_pag_listeners.dart';
 import 'plug_pag_results.dart';
 
 mixin PlugPagMethods {
@@ -50,5 +51,19 @@ mixin PlugPagMethods {
     final res = await PagseguroPlugpagFlutterPlatform.instance
         .invokePlugPagMethod('printFromFile', [printerData]);
     return PlugPagPrintResult.fromMethodChannel(res);
+  }
+
+  void asyncCalculateInstallments(
+    String saleValue,
+    PlugPagInstallmentsListener listener,
+  ) async {
+    try {
+      await PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
+        'asyncCalculateInstallments',
+        [saleValue, listener],
+      );
+    } catch (e) {
+      print(e);
+    }
   }
 }

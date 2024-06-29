@@ -17,9 +17,5 @@ abstract class PagseguroPlugpagFlutterPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future invokePlugPagMethod(
-    String methodName, [
-    List<dynamic>? methodParams,
-  ]) =>
-      throw UnimplementedError();
+  Future invokePlugPagMethod(String methodName, [List<dynamic>? methodParams]);
 }

@@ -1,6 +1,6 @@
-import 'package:pagseguro_plugpag_flutter/src/utils/interfaces/plug_pag_class_data.dart';
+import 'utils/interfaces/plug_pag_data_class.dart';
 
-class PlugPagActivationData extends PlugPagClassData {
+class PlugPagActivationData extends PlugPagDataClass {
   final String activationCode;
   PlugPagActivationData(this.activationCode);
   @override
@@ -9,7 +9,7 @@ class PlugPagActivationData extends PlugPagClassData {
   List get params => [activationCode];
 }
 
-class PlugPagPrinterData extends PlugPagClassData {
+class PlugPagPrinterData extends PlugPagDataClass {
   final String filePath;
   final int printerQuality, steps;
   PlugPagPrinterData(this.filePath, this.printerQuality, this.steps);
