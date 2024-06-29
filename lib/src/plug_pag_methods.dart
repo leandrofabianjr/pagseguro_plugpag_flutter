@@ -56,14 +56,35 @@ mixin PlugPagMethods {
   void asyncCalculateInstallments(
     String saleValue,
     PlugPagInstallmentsListener listener,
-  ) async {
-    try {
-      await PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
+  ) =>
+      PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
         'asyncCalculateInstallments',
         [saleValue, listener],
       );
-    } catch (e) {
-      print(e);
-    }
+
+  void setEventListener(PlugPagEventListener listener) =>
+      PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
+        'setEventListener',
+        [listener],
+      );
+
+  void setPrinterListener(PlugPagPrinterListener listener) =>
+      PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
+        'setPrinterListener',
+        [listener],
+      );
+
+  void setPlugPagCustomPrinterLayout(
+          PlugPagCustomPrinterLayout plugPagCustomPrinterLayout) =>
+      PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
+        'setPlugPagCustomPrinterLayout',
+        [plugPagCustomPrinterLayout],
+      );
+
+  Future<PlugPagTransactionResult> doPayment(
+      PlugPagPaymentData paymentData) async {
+    final res = await PagseguroPlugpagFlutterPlatform.instance
+        .invokePlugPagMethod('doPayment', [paymentData]);
+    return PlugPagTransactionResult.fromMethodChannel(res);
   }
 }

@@ -171,6 +171,24 @@ mixin PlugPagImplementations {
       }
     });
   }
+
+  Future<Widget> pagamentoCredito() {
+    final paymentData = PlugPagPaymentData(
+      type: PlugPag.TYPE_CREDITO,
+      amount: 1000,
+      installmentType: PlugPag.INSTALLMENT_TYPE_PARC_COMPRADOR,
+      installments: 3,
+      userReference: "Teste pagseguro_plugpag_flutter",
+      printReceipt: true,
+    );
+    return _plugPag.doPayment(paymentData).then((result) {
+      if (result.result == PlugPag.RET_OK) {
+        return Text('Pagamento realizado (${result.transactionCode})');
+      } else {
+        return Text('Erro: ${result.errorCode} - ${result.message}');
+      }
+    });
+  }
 }
 
 class CalcularParcelasAsyncListener extends PlugPagInstallmentsListener {
@@ -196,5 +214,50 @@ class CalcularParcelasAsyncListener extends PlugPagInstallmentsListener {
   @override
   void onError(String errorMessage) {
     _handler(Text(errorMessage));
+  }
+}
+
+class PagamentoComCartaoListener extends PlugPagEventListener {
+  var _passwordDigitsCounter = 0;
+  final void Function(Widget child) _handler;
+  PagamentoComCartaoListener(this._handler);
+
+  @override
+  void onEvent(PlugPagEventData data) {
+    switch (data.eventCode) {
+      case PlugPagEventData.EVENT_CODE_DIGIT_PASSWORD:
+        _passwordDigitsCounter++;
+        final hidden = List.generate(_passwordDigitsCounter, (_) => '*');
+        _handler(Text('Senha: $hidden'));
+        break;
+      case PlugPagEventData.EVENT_CODE_NO_PASSWORD:
+        _passwordDigitsCounter = 0;
+        _handler(const Text('Senha: '));
+        break;
+      default:
+        if (data.customMessage != null) {
+          _handler(Text(data.customMessage!));
+        }
+    }
+  }
+}
+
+class PrinterListener extends PlugPagPrinterListener {
+  final void Function(Widget child) _handler;
+  PrinterListener(this._handler);
+
+  @override
+  void onError(PlugPagPrintResult result) {
+    _handler(
+        Text('Erro de impressão: (${result.errorCode}) ${result.message}'));
+  }
+
+  @override
+  void onSuccess(PlugPagPrintResult result) {
+    _handler(
+      Text(
+        'Impressão concluída: ${result.message} - ${result.result} - ${result.steps}',
+      ),
+    );
   }
 }
