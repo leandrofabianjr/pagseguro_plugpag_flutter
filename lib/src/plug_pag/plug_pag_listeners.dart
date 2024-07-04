@@ -1,10 +1,9 @@
-import 'plug_pag_datas.dart';
 import 'plug_pag_results.dart';
-import 'utils/interfaces/plug_pag_listener_class.dart';
+import '../utils/interfaces/plug_pag_listener_class.dart';
 
 abstract class PlugPagInstallmentsListener extends PlugPagListenerClass {
   @override
-  String get className => 'PlugPagInstallmentsListener';
+  String get className => 'listener.PlugPagInstallmentsListener';
 
   void onCalculateInstallments(List<String> installments);
   void onCalculateInstallmentsWithTotalAmount(
@@ -41,7 +40,9 @@ abstract class PlugPagEventListener extends PlugPagListenerClass {
   void invoke(String method, List<dynamic> args) {
     switch (method) {
       case 'onEvent':
-        onEvent(args[0] as PlugPagEventData);
+        final classArgs = (args[0]['ppf_args'] as Map);
+        final result = PlugPagEventData.fromMethodChannel(classArgs);
+        onEvent(result);
         break;
       default:
         throw Exception('Método inválido em PlugPagEventListener: $method');
@@ -49,18 +50,9 @@ abstract class PlugPagEventListener extends PlugPagListenerClass {
   }
 }
 
-// public interface PlugPagPrinterListener {
-//     public abstract fun onError(result: br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagPrintResult): kotlin.Unit
-
-//     public abstract fun onSuccess(result: br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagPrintResult): kotlin.Unit
-// }
-
 abstract class PlugPagPrinterListener extends PlugPagListenerClass {
   void onError(PlugPagPrintResult result);
   void onSuccess(PlugPagPrintResult result);
-
-  @override
-  String packageName = 'br.com.uol.pagseguro.plugpagservice.wrapper';
 
   @override
   String get className => 'PlugPagPrinterListener';
@@ -69,10 +61,14 @@ abstract class PlugPagPrinterListener extends PlugPagListenerClass {
   void invoke(String method, List<dynamic> args) {
     switch (method) {
       case 'onError':
-        onError(args[0] as PlugPagPrintResult);
+        final classArgs = (args[0]['ppf_args'] as Map<String, dynamic>);
+        final result = PlugPagPrintResult.fromMethodChannel(classArgs);
+        onError(result);
         break;
       case 'onSuccess':
-        onSuccess(args[0] as PlugPagPrintResult);
+        final classArgs = (args[0]['ppf_args'] as Map<String, dynamic>);
+        final result = PlugPagPrintResult.fromMethodChannel(classArgs);
+        onSuccess(result);
         break;
       default:
         throw Exception('Método inválido em PlugPagPrinterListener: $method');

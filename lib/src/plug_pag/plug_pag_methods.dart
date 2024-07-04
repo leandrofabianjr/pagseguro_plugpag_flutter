@@ -1,9 +1,19 @@
-import 'pagseguro_plugpag_flutter_platform_interface.dart';
+import 'package:pagseguro_plugpag_flutter/src/utils/interfaces/plug_pag_listener_class.dart';
+
+import '../pagseguro_plugpag_flutter_platform_interface.dart';
 import 'plug_pag_datas.dart';
 import 'plug_pag_listeners.dart';
 import 'plug_pag_results.dart';
 
 mixin PlugPagMethods {
+  void onException(Function(Object ex)? cathError) {
+    PagseguroPlugpagFlutterPlatform.instance.onException(cathError);
+  }
+
+  void removeListener(PlugPagListenerClass listener) {
+    PagseguroPlugpagFlutterPlatform.instance.removeListener(listener);
+  }
+
   Future<bool> isAuthenticated() async {
     final res = await PagseguroPlugpagFlutterPlatform.instance
         .invokePlugPagMethod('isAuthenticated');
@@ -18,7 +28,7 @@ mixin PlugPagMethods {
       'initializeAndActivatePinpad',
       [data],
     );
-    return PlugPagInitializationResult.fromMethodChannel(res);
+    return PlugPagInitializationResult.fromMethodChannel(res['ppf_args']);
   }
 
   Future<PlugPagInitializationResult> deactivate(
@@ -29,7 +39,7 @@ mixin PlugPagMethods {
       'deactivate',
       [data],
     );
-    return PlugPagInitializationResult.fromMethodChannel(res);
+    return PlugPagInitializationResult.fromMethodChannel(res['ppf_args']);
   }
 
   Future<List<PlugPagInstallment>> calculateInstallments(
@@ -42,7 +52,7 @@ mixin PlugPagMethods {
       [saleValue, installmentType],
     );
     return (res as List)
-        .map((i) => PlugPagInstallment.fromMethodChannel(i))
+        .map((i) => PlugPagInstallment.fromMethodChannel(i['ppf_args']))
         .toList();
   }
 
@@ -50,7 +60,7 @@ mixin PlugPagMethods {
       PlugPagPrinterData printerData) async {
     final res = await PagseguroPlugpagFlutterPlatform.instance
         .invokePlugPagMethod('printFromFile', [printerData]);
-    return PlugPagPrintResult.fromMethodChannel(res);
+    return PlugPagPrintResult.fromMethodChannel(res['ppf_args']);
   }
 
   void asyncCalculateInstallments(
@@ -85,6 +95,12 @@ mixin PlugPagMethods {
       PlugPagPaymentData paymentData) async {
     final res = await PagseguroPlugpagFlutterPlatform.instance
         .invokePlugPagMethod('doPayment', [paymentData]);
-    return PlugPagTransactionResult.fromMethodChannel(res);
+    return PlugPagTransactionResult.fromMethodChannel(res['ppf_args']);
+  }
+
+  Future<PlugPagAbortResult> abort() async {
+    final res = await PagseguroPlugpagFlutterPlatform.instance
+        .invokePlugPagMethod('abort');
+    return PlugPagAbortResult.fromMethodChannel(res['ppf_args']);
   }
 }

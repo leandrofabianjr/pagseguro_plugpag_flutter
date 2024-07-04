@@ -1,5 +1,10 @@
 // ignore_for_file: constant_identifier_names
 
+export 'plug_pag.dart';
+export 'plug_pag_datas.dart';
+export 'plug_pag_listeners.dart';
+export 'plug_pag_results.dart';
+
 import 'plug_pag_methods.dart';
 
 class PlugPag with PlugPagMethods {

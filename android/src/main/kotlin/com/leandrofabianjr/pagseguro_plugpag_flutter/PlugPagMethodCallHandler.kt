@@ -42,34 +42,62 @@ class PlugPagMethodCallHandler(context: Context, private val channel: MethodChan
             val classInvoker = Class.forName(className)
             if (argMap.containsKey(ppfDataClassParams)) {
                 val classConstructorParams = argMap[ppfDataClassParams] as ArrayList<*>
-                val classConstructorParamsTypes = classConstructorParams.map { p -> getJavaType(p) }
-                return classInvoker
-                    .getDeclaredConstructor(*classConstructorParamsTypes.toTypedArray())
-                    .newInstance(*classConstructorParams.toTypedArray())
+                for (constructor in classInvoker.constructors) {
+                    try {
+                        return constructor.newInstance(*classConstructorParams.toTypedArray())
+                    } catch (e: Exception) {
+                        print(e.toString())
+                    }
+                }
+            } else {
+                return classInvoker.getDeclaredConstructor().newInstance()
             }
-            return classInvoker.getDeclaredConstructor().newInstance()
         }
         throw ClassNotFoundException()
     }
 
-    private fun typetoMethodChannel(obj: Any?): Any? {
-        if (obj is String || obj is Int || obj is Boolean || obj == null) {
+    private fun objectToMethodChannel(obj: Any): Any? {
+        if (obj is Char) return obj.code
+
+        if (
+            obj is Boolean ||
+            obj is Int ||
+            obj is Long ||
+            obj is Double ||
+            obj is String ||
+            obj::class.memberProperties.isEmpty()
+        ) {
             return obj
         }
-        return toHashMap(obj).ifEmpty { obj }
+
+        val map = HashMap<String, Any?>()
+        for (prop in obj::class.memberProperties) {
+            val propValue = prop.getter.call(obj)
+            map[prop.name] = objectOrArrayToMethodChannel(propValue)
+        }
+
+        return hashMapOf(
+            "ppf_class" to obj::class.qualifiedName,
+            "ppf_args" to map
+        )
     }
 
-    private fun objectToMethodChannel(obj: Any?): Any? {
+    private fun objectOrArrayToMethodChannel(obj: Any?): Any? {
         if (obj == null) return null
-        return if (obj::class.java.isArray) {
+        val a = if (obj::class.java.isArray) {
             val arr = mutableListOf<Any?>()
             for (o in obj as Array<*>) {
-                arr.add(typetoMethodChannel(o))
+                if (o == null) {
+                    arr.add(null)
+                } else {
+                    arr.add(objectToMethodChannel(o))
+                }
             }
             arr
         } else {
-            typetoMethodChannel(obj)
+            objectToMethodChannel(obj)
         }
+        return a
     }
 
     private fun instantiateListenerObject(
@@ -83,7 +111,7 @@ class PlugPagMethodCallHandler(context: Context, private val channel: MethodChan
                 val res = hashMapOf(
                     ppfListenerHash to argMap[ppfListenerHash],
                     ppfInvokeListenerMethod to method.name,
-                    ppfInvokeListenerMethodArgs to args.map { objectToMethodChannel(it) }
+                    ppfInvokeListenerMethodArgs to args.map { objectOrArrayToMethodChannel(it) }
                 )
                 channel.invokeMethod(ppfInvokeListener, res)
             } catch (e: Exception) {
@@ -100,16 +128,6 @@ class PlugPagMethodCallHandler(context: Context, private val channel: MethodChan
         return Proxy.newProxyInstance(clazz.classLoader, arrayOf(clazz), handler);
     }
 
-    private fun toHashMap(obj: Any?): HashMap<String, Any?> {
-        val map = HashMap<String, Any?>()
-        if (obj == null) return map
-
-        for (prop in obj::class.memberProperties) {
-            map[prop.name] = prop.getter.call(obj)
-        }
-        return map
-    }
-
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         try {
             val (plugPagMethodParams, plugPagMethodParamsTypes) = processParams(call.arguments)
@@ -122,8 +140,15 @@ class PlugPagMethodCallHandler(context: Context, private val channel: MethodChan
                 kotlin.runCatching {
                     plugPagMethod.invoke(plugPag, *plugPagMethodParams.toTypedArray())
                 }.onSuccess {
-                    result.success(objectToMethodChannel(it))
-                }.onFailure { throw it }
+                    val a = objectOrArrayToMethodChannel(it)
+                    try {
+                        result.success(a)
+                    } catch (e: Exception) {
+                        print(e.message)
+                    }
+                }.onFailure {
+                    throw it
+                }
             }
 
         } catch (e: NoSuchFieldException) {
@@ -134,10 +159,12 @@ class PlugPagMethodCallHandler(context: Context, private val channel: MethodChan
             result.notImplemented()
         } catch (e: Exception) {
             result.error(e.getErrorCodeOrUnknown(), e.getMessageOrUnknown(), null)
+        } catch (e: IllegalArgumentException) {
+            result.error(e.getErrorCodeOrUnknown(), e.getMessageOrUnknown(), null)
         }
     }
 
-    private fun processParams(callArguments: Any): Pair<MutableList<Any?>, MutableList<Class<out Any>?>> {
+    private fun processParams(callArguments: Any?): Pair<MutableList<Any?>, MutableList<Class<out Any>?>> {
         val params = mutableListOf<Any?>()
         val paramsTypes = mutableListOf<Class<out Any>?>()
         if (callArguments is ArrayList<*>) {

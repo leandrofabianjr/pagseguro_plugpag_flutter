@@ -1,4 +1,2 @@
-export 'src/plug_pag.dart';
-export 'src/plug_pag_datas.dart';
-export 'src/plug_pag_listeners.dart';
-export 'src/plug_pag_results.dart';
+export 'src/flutter/flutter.dart';
+export 'src/plug_pag/plug_pag.dart';

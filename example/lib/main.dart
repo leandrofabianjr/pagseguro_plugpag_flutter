@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' show get;
 import 'package:pagseguro_plugpag_flutter/pagseguro_plugpag_flutter.dart';
+import 'payment_page.dart';
 import 'package:path_provider/path_provider.dart'
     show getExternalCacheDirectories;
 
@@ -68,21 +69,28 @@ class _PagseguroPlugpagFlutterExampleState
             ),
             onTap: () => handleCall(desativarMaquininha),
           ),
+          // ListTile(
+          //   title: const Text(
+          //       'Calcular valor parcelas para R\$ 100 com juros para o comprador'),
+          //   subtitle: const Text(
+          //     'calculateInstallments(\'10000\', PlugPag.INSTALLMENT_TYPE_PARC_COMPRADOR)',
+          //   ),
+          //   onTap: () => handleCall(calcularParcelas),
+          // ),
+          // ListTile(
+          //   title:
+          //       const Text('Calcular valor parcelas para R\$ 100 assíncrono'),
+          //   subtitle: const Text(
+          //     'calculateInstallments(\'10000\', PlugPag.INSTALLMENT_TYPE_PARC_COMPRADOR)',
+          //   ),
+          //   onTap: () => handleCall(calcularParcelasAsync),
+          // ),
           ListTile(
-            title: const Text(
-                'Calcular valor parcelas para R\$ 100 com juros para o comprador'),
-            subtitle: const Text(
-              'calculateInstallments(\'10000\', PlugPag.INSTALLMENT_TYPE_PARC_COMPRADOR)',
+            title: const Text('Fazer pagamento'),
+            subtitle: const Text('doPayment()'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const PaymentPage()),
             ),
-            onTap: () => handleCall(calcularParcelas),
-          ),
-          ListTile(
-            title:
-                const Text('Calcular valor parcelas para R\$ 100 assíncrono'),
-            subtitle: const Text(
-              'calculateInstallments(\'10000\', PlugPag.INSTALLMENT_TYPE_PARC_COMPRADOR)',
-            ),
-            onTap: () => handleCall(calcularParcelasAsync),
           ),
           ListTile(
             title: const Text('Imprimir imagem'),
@@ -171,24 +179,6 @@ mixin PlugPagImplementations {
       }
     });
   }
-
-  Future<Widget> pagamentoCredito() {
-    final paymentData = PlugPagPaymentData(
-      type: PlugPag.TYPE_CREDITO,
-      amount: 1000,
-      installmentType: PlugPag.INSTALLMENT_TYPE_PARC_COMPRADOR,
-      installments: 3,
-      userReference: "Teste pagseguro_plugpag_flutter",
-      printReceipt: true,
-    );
-    return _plugPag.doPayment(paymentData).then((result) {
-      if (result.result == PlugPag.RET_OK) {
-        return Text('Pagamento realizado (${result.transactionCode})');
-      } else {
-        return Text('Erro: ${result.errorCode} - ${result.message}');
-      }
-    });
-  }
 }
 
 class CalcularParcelasAsyncListener extends PlugPagInstallmentsListener {
@@ -214,31 +204,6 @@ class CalcularParcelasAsyncListener extends PlugPagInstallmentsListener {
   @override
   void onError(String errorMessage) {
     _handler(Text(errorMessage));
-  }
-}
-
-class PagamentoComCartaoListener extends PlugPagEventListener {
-  var _passwordDigitsCounter = 0;
-  final void Function(Widget child) _handler;
-  PagamentoComCartaoListener(this._handler);
-
-  @override
-  void onEvent(PlugPagEventData data) {
-    switch (data.eventCode) {
-      case PlugPagEventData.EVENT_CODE_DIGIT_PASSWORD:
-        _passwordDigitsCounter++;
-        final hidden = List.generate(_passwordDigitsCounter, (_) => '*');
-        _handler(Text('Senha: $hidden'));
-        break;
-      case PlugPagEventData.EVENT_CODE_NO_PASSWORD:
-        _passwordDigitsCounter = 0;
-        _handler(const Text('Senha: '));
-        break;
-      default:
-        if (data.customMessage != null) {
-          _handler(Text(data.customMessage!));
-        }
-    }
   }
 }
 

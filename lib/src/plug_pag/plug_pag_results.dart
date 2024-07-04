@@ -171,8 +171,10 @@ class PlugPagTransactionResult {
       label: map['label'].toString(),
       holderName: map['holderName'].toString(),
       extendedHolderName: map['extendedHolderName'].toString(),
-      cardIssuerNationality: CardIssuerNationality.values
-          .firstWhere((e) => e.name == map['cardIssuerNationality']),
+      cardIssuerNationality: CardIssuerNationality.values.firstWhere(
+        (e) => e.name == map['cardIssuerNationality'],
+        orElse: () => CardIssuerNationality.UNAVAILABLE,
+      ),
       result: map['result'],
       readerModel: map['readerModel'].toString(),
       nsu: map['nsu'].toString(),
@@ -195,6 +197,70 @@ class PlugPagTransactionResult {
       partialPayPartiallyAuthorizedAmount:
           map['partialPayPartiallyAuthorizedAmount'].toString(),
       partialPayRemainingAmount: map['partialPayRemainingAmount'].toString(),
+    );
+  }
+}
+
+class PlugPagEventData {
+  static const ON_EVENT_ERROR = -3;
+  static const EVENT_CODE_CUSTOM_MESSAGE = -2;
+  static const EVENT_CODE_DEFAULT = -1;
+  static const EVENT_CODE_WAITING_CARD = 0;
+  static const EVENT_CODE_INSERTED_CARD = 1;
+  static const EVENT_CODE_PIN_REQUESTED = 2;
+  static const EVENT_CODE_PIN_OK = 3;
+  static const EVENT_CODE_SALE_END = 4;
+  static const EVENT_CODE_AUTHORIZING = 5;
+  @Deprecated('')
+  static const EVENT_CODE_INSERTED_KEY = 6;
+  static const EVENT_CODE_WAITING_REMOVE_CARD = 7;
+  static const EVENT_CODE_REMOVED_CARD = 8;
+  static const EVENT_CODE_CVV_REQUESTED = 9;
+  static const EVENT_CODE_CVV_OK = 10;
+  static const EVENT_CODE_CAR_BIN_REQUESTED = 11;
+  static const EVENT_CODE_CAR_BIN_OK = 12;
+  static const EVENT_CODE_CAR_HOLDER_REQUESTED = 13;
+  static const EVENT_CODE_CAR_HOLDER_OK = 14;
+  static const EVENT_CODE_ACTIVATION_SUCCESS = 15;
+  static const EVENT_CODE_DIGIT_PASSWORD = 16;
+  static const EVENT_CODE_NO_PASSWORD = 17;
+  static const EVENT_CODE_SALE_APPROVED = 18;
+  static const EVENT_CODE_SALE_NOT_APPROVED = 19;
+  static const EVENT_CODE_CONTACTLESS_ERROR = 23;
+  static const EVENT_CODE_CONTACTLESS_ON_DEVICE = 24;
+  static const EVENT_CODE_USE_TARJA = 25;
+  static const EVENT_CODE_USE_CHIP = 26;
+  static const EVENT_CODE_DOWNLOADING_TABLES = 27;
+  static const EVENT_CODE_RECORDING_TABLES = 28;
+  static const EVENT_CODE_SUCCESS = 29;
+  static const EVENT_CODE_SOLVE_PENDINGS = 30;
+  static const MESSAGES_INITIAL_CAPACITY = 20;
+
+  PlugPagEventData(this.eventCode, this.customMessage);
+  final int eventCode;
+  final String? customMessage;
+
+  factory PlugPagEventData.fromMethodChannel(
+    Map<dynamic, dynamic> map,
+  ) {
+    return PlugPagEventData(
+      map['eventCode'],
+      map['customMessage'],
+    );
+  }
+}
+
+class PlugPagAbortResult {
+  final int result;
+  PlugPagAbortResult({
+    required this.result,
+  });
+
+  factory PlugPagAbortResult.fromMethodChannel(
+    Map<dynamic, dynamic> map,
+  ) {
+    return PlugPagAbortResult(
+      result: map['result'],
     );
   }
 }

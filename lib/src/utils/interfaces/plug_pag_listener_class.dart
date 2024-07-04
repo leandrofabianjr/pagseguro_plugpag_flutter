@@ -5,8 +5,7 @@ abstract class PlugPagListenerClass {
   static const attrInvokeMethod = "ppf_invoke_listener_method";
   static const attrInvokeMethodArgs = "ppf_invoke_listener_method_args";
 
-  String get packageName =>
-      "br.com.uol.pagseguro.plugpagservice.wrapper.listeners";
+  String get packageName => "br.com.uol.pagseguro.plugpagservice.wrapper";
 
   String get className;
 

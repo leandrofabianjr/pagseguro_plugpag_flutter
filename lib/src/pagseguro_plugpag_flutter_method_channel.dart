@@ -19,8 +19,9 @@ class MethodChannelPagseguroPlugpagFlutter
   Future invokePlugPagMethod(
     String methodName, [
     List<dynamic>? methodParams,
-  ]) =>
-      methodChannel.invokeMethod(
+  ]) {
+    try {
+      return methodChannel.invokeMethod(
         methodName,
         methodParams?.map((p) {
           if (p is PlugPagDataClass) {
@@ -32,6 +33,12 @@ class MethodChannelPagseguroPlugpagFlutter
           return p;
         }).toList(),
       );
+    } catch (e) {
+      if (kDebugMode) print(e);
+      throwException(e);
+      return Future.error(e);
+    }
+  }
 
   Future<void> _handleMethodCall(MethodCall call) async {
     try {
@@ -48,7 +55,8 @@ class MethodChannelPagseguroPlugpagFlutter
           throw Exception(call.arguments);
       }
     } catch (e) {
-      if (kDebugMode) print(e);
+      throwException(e);
+      return Future.error(e);
     }
   }
 
@@ -60,8 +68,13 @@ class MethodChannelPagseguroPlugpagFlutter
     try {
       listeners[hash] = listener;
     } catch (e) {
-      if (kDebugMode) print(e);
+      throwException(e);
     }
     return map;
+  }
+
+  @override
+  void removeListener(PlugPagListenerClass listener) {
+    listeners.remove(listener.hashCode);
   }
 }
