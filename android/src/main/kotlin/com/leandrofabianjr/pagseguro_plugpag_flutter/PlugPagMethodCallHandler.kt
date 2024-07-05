@@ -84,20 +84,20 @@ class PlugPagMethodCallHandler(context: Context, private val channel: MethodChan
 
     private fun objectOrArrayToMethodChannel(obj: Any?): Any? {
         if (obj == null) return null
-        val a = if (obj::class.java.isArray) {
+        return if (obj is ArrayList<*> || obj::class.java.isArray) {
             val arr = mutableListOf<Any?>()
-            for (o in obj as Array<*>) {
+            val objArray = if (obj is ArrayList<*>) obj.toArray() else obj as Array<*>
+            for (o in objArray) {
                 if (o == null) {
                     arr.add(null)
                 } else {
-                    arr.add(objectToMethodChannel(o))
+                    arr.add(objectOrArrayToMethodChannel(o))
                 }
             }
             arr
         } else {
             objectToMethodChannel(obj)
         }
-        return a
     }
 
     private fun instantiateListenerObject(
@@ -140,11 +140,11 @@ class PlugPagMethodCallHandler(context: Context, private val channel: MethodChan
                 kotlin.runCatching {
                     plugPagMethod.invoke(plugPag, *plugPagMethodParams.toTypedArray())
                 }.onSuccess {
-                    val a = objectOrArrayToMethodChannel(it)
                     try {
+                        val a = objectOrArrayToMethodChannel(it)
                         result.success(a)
                     } catch (e: Exception) {
-                        print(e.message)
+                        throw e
                     }
                 }.onFailure {
                     throw it

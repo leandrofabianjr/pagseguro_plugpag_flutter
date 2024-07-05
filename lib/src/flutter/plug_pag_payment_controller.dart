@@ -125,6 +125,15 @@ class PlugPagPaymentController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<List<PlugPagInstallment>> calculateInstallments(
+    double amount,
+    PlugPagPaymentDataInstallmentType installmentType,
+  ) async {
+    final a =
+        await _plugPag.calculateInstallmentsFromDouble(amount, installmentType);
+    return a;
+  }
+
   void doPayment(PlugPagPaymentData paymentData) {
     state = PlugPagPaymentControllerState(status: _S.loading);
     notifyListeners();

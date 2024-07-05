@@ -44,16 +44,25 @@ mixin PlugPagMethods {
 
   Future<List<PlugPagInstallment>> calculateInstallments(
     String saleValue,
-    int installmentType,
+    PlugPagPaymentDataInstallmentType installmentType,
   ) async {
     final res =
         await PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
       'calculateInstallments',
-      [saleValue, installmentType],
+      [saleValue, installmentType.plugPagValue],
     );
     return (res as List)
         .map((i) => PlugPagInstallment.fromMethodChannel(i['ppf_args']))
         .toList();
+  }
+
+  Future<List<PlugPagInstallment>> calculateInstallmentsFromDouble(
+    double saleValue,
+    PlugPagPaymentDataInstallmentType installmentType,
+  ) async {
+    final stringSaleValue =
+        saleValue.toStringAsFixed(2).replaceAll(RegExp('[^0-9]'), '');
+    return calculateInstallments(stringSaleValue, installmentType);
   }
 
   Future<PlugPagPrintResult> printFromFile(

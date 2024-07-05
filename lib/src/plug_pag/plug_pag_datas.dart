@@ -91,7 +91,8 @@ enum PlugPagPaymentDataInstallmentType {
   parcComprador,
 }
 
-extension on PlugPagPaymentDataInstallmentType {
+extension PlugPagPaymentDataInstallmentTypeExtension
+    on PlugPagPaymentDataInstallmentType {
   int get plugPagValue => switch (this) {
         PlugPagPaymentDataInstallmentType.aVista =>
           PlugPag.INSTALLMENT_TYPE_A_VISTA,

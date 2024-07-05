@@ -69,22 +69,6 @@ class _PagseguroPlugpagFlutterExampleState
             ),
             onTap: () => handleCall(desativarMaquininha),
           ),
-          // ListTile(
-          //   title: const Text(
-          //       'Calcular valor parcelas para R\$ 100 com juros para o comprador'),
-          //   subtitle: const Text(
-          //     'calculateInstallments(\'10000\', PlugPag.INSTALLMENT_TYPE_PARC_COMPRADOR)',
-          //   ),
-          //   onTap: () => handleCall(calcularParcelas),
-          // ),
-          // ListTile(
-          //   title:
-          //       const Text('Calcular valor parcelas para R\$ 100 assíncrono'),
-          //   subtitle: const Text(
-          //     'calculateInstallments(\'10000\', PlugPag.INSTALLMENT_TYPE_PARC_COMPRADOR)',
-          //   ),
-          //   onTap: () => handleCall(calcularParcelasAsync),
-          // ),
           ListTile(
             title: const Text('Fazer pagamento'),
             subtitle: const Text('doPayment()'),
@@ -133,20 +117,6 @@ mixin PlugPagImplementations {
         return Text('Erro: ${value.errorCode} - ${value.errorMessage}');
       }
     });
-  }
-
-  Future<Widget> calcularParcelas() {
-    return _plugPag
-        .calculateInstallments(
-          '10000',
-          PlugPag.INSTALLMENT_TYPE_PARC_COMPRADOR,
-        )
-        .then((value) => Column(
-              children: value
-                  .map((e) => Text(
-                      '${e.quantity} x R\$ ${e.amountDouble} = R\$ ${e.totalDouble}'))
-                  .toList(),
-            ));
   }
 
   Future<Widget> calcularParcelasAsync() {

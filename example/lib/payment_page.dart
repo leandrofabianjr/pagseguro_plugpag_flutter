@@ -3,6 +3,100 @@ import 'package:flutter/services.dart';
 import 'package:pagseguro_plugpag_flutter/pagseguro_plugpag_flutter.dart';
 import 'package:provider/provider.dart';
 
+class PaymentPage extends StatelessWidget {
+  const PaymentPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => PlugPagPaymentController(),
+      child: Consumer<PlugPagPaymentController>(
+        builder: (context, controller, child) {
+          final state = controller.state;
+          switch (state.status) {
+            case PlugPagPaymentControllerStatus.ready:
+              return child!;
+            case PlugPagPaymentControllerStatus.digitPassword:
+              return PaymentPageCenteredWidget([
+                const Text('Digite sua senha:'),
+                Text(state.hiddenPassword),
+                TextButton(
+                  onPressed: controller.abort,
+                  child: const Text('Cancelar'),
+                )
+              ]);
+            case PlugPagPaymentControllerStatus.loading:
+              return PaymentPageCenteredWidget([
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(state.message ?? 'Aguarde'),
+                TextButton(
+                  onPressed: controller.abort,
+                  child: const Text('Cancelar'),
+                )
+              ]);
+            case PlugPagPaymentControllerStatus.finished:
+              return TransactionResultWidget(state.transactionResult!);
+            case PlugPagPaymentControllerStatus.error:
+            case PlugPagPaymentControllerStatus.aborted:
+              return PaymentPageCenteredWidget([
+                Text(
+                  state.status == PlugPagPaymentControllerStatus.aborted
+                      ? 'Transação cancelada'
+                      : 'Erro:',
+                ),
+                if (state.hasCode) Text(state.code!),
+                if (state.hasMessage) Text(state.message!),
+                TextButton(
+                  onPressed: controller.restart,
+                  child: const Text('Tentar novamente'),
+                ),
+              ]);
+          }
+        },
+        child: const PaymentFormWidget(),
+      ),
+    );
+  }
+}
+
+class PaymentPageCenteredWidget extends StatelessWidget {
+  const PaymentPageCenteredWidget(this.children, {super.key});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Pagamento com Cartão')),
+      body: Center(
+        child: Column(mainAxisSize: MainAxisSize.min, children: children),
+      ),
+    );
+  }
+}
+
+extension on PlugPagPaymentDataType {
+  String get name => switch (this) {
+        PlugPagPaymentDataType.credito => 'Crédito',
+        PlugPagPaymentDataType.debito => 'Débito',
+        PlugPagPaymentDataType.voucher => 'Voucher (vale refeição)',
+        PlugPagPaymentDataType.pix => 'Pix',
+        PlugPagPaymentDataType.preautoCard => 'Pré-autorização via cartão',
+        PlugPagPaymentDataType.preautoKeyed => 'Pré-autorização por digitação',
+        PlugPagPaymentDataType.qrCode => 'QrCode Débito',
+        PlugPagPaymentDataType.qrcodeCredito => 'QrCode Crédito',
+      };
+}
+
+extension on PlugPagPaymentDataInstallmentType {
+  String get name => switch (this) {
+        PlugPagPaymentDataInstallmentType.aVista => 'À vista',
+        PlugPagPaymentDataInstallmentType.parcVendedor => 'Sem juros',
+        PlugPagPaymentDataInstallmentType.parcComprador => 'Com juros',
+      };
+}
+
 extension on String {
   double get asDouble => double.tryParse(replaceAll(',', '.')) ?? 0;
 
@@ -15,43 +109,65 @@ extension on String {
   }
 }
 
-class PaymentPage extends StatelessWidget {
-  const PaymentPage({super.key});
+class PaymentFormWidget extends StatefulWidget {
+  const PaymentFormWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => PlugPagPaymentController(),
-      child: const PaymentPageView(),
+  State<PaymentFormWidget> createState() => _PaymentFormWidgetState();
+}
+
+class _PaymentFormWidgetState extends State<PaymentFormWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final dropdownState = GlobalKey<FormFieldState>();
+  var type = PlugPagPaymentDataType.credito;
+  var amount = 0.0;
+  var userReference = 'houston42';
+  var installmentType = PlugPagPaymentDataInstallmentType.aVista;
+  List<PlugPagInstallment> installmentOptions = [];
+  var installments = PlugPag.A_VISTA_INSTALLMENT_QUANTITY;
+  bool loadingInstallments = false;
+
+  void _calculateInstallments(PlugPagPaymentDataInstallmentType value) async {
+    if (value == PlugPagPaymentDataInstallmentType.aVista) {
+      return setState(() {
+        installmentOptions = [];
+        installments = PlugPag.A_VISTA_INSTALLMENT_QUANTITY;
+        installmentType = PlugPagPaymentDataInstallmentType.aVista;
+      });
+    }
+    setState(() {
+      loadingInstallments = true;
+      installmentOptions = [];
+      installmentType = value;
+      installments = PlugPag.A_VISTA_INSTALLMENT_QUANTITY;
+    });
+    context
+        .read<PlugPagPaymentController>()
+        .calculateInstallments(amount, value)
+        .then((value) {
+      if (value.isEmpty) {
+        installmentType = PlugPagPaymentDataInstallmentType.aVista;
+      } else {
+        installments = value.first.quantity;
+      }
+      installmentOptions = value;
+    }).whenComplete(
+      () => setState(() {
+        loadingInstallments = false;
+        dropdownState.currentState?.didChange(installmentType);
+      }),
     );
   }
-}
 
-class PaymentPageView extends StatefulWidget {
-  const PaymentPageView({super.key});
-
-  @override
-  State<PaymentPageView> createState() => _PaymentPageViewState();
-}
-
-class _PaymentPageViewState extends State<PaymentPageView> {
-  final _formKey = GlobalKey<FormState>();
-  final _valorTxtController = TextEditingController();
-  final _referenciaTxtController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  void doPayment() {
+  void _doPayment() {
     if (_formKey.currentState?.validate() == true) {
       context.read<PlugPagPaymentController>().doPayment(
             PlugPagPaymentData.fromDoubleAmount(
-              type: PlugPagPaymentDataType.credito,
-              amount: _valorTxtController.text.asDouble,
-              userReference: _referenciaTxtController.text,
-              installmentType: PlugPagPaymentDataInstallmentType.aVista,
+              type: type,
+              amount: amount,
+              userReference: userReference,
+              installmentType: installmentType,
+              installments: installments,
               printReceipt: true,
             ),
           );
@@ -61,118 +177,136 @@ class _PaymentPageViewState extends State<PaymentPageView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pagamento com Cartão'),
-      ),
-      body: Center(
+      appBar: AppBar(title: const Text('Novo pagamento')),
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Consumer<PlugPagPaymentController>(
-            builder: (context, controller, child) {
-              final state = controller.state;
-              switch (state.status) {
-                case PlugPagPaymentControllerStatus.ready:
-                  return child!;
-                case PlugPagPaymentControllerStatus.loading:
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const CircularProgressIndicator(),
-                      Text(state.message ?? 'Aguarde'),
-                      TextButton(
-                        onPressed: controller.abort,
-                        child: const Text('Cancelar'),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 16),
+                DropdownButtonFormField<PlugPagPaymentDataType>(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Tipo',
+                  ),
+                  value: type,
+                  items: PlugPagPaymentDataType.values
+                      .map(
+                        (e) => DropdownMenuItem<PlugPagPaymentDataType>(
+                          value: e,
+                          child: Text(e.name),
+                        ),
                       )
-                    ],
-                  );
-                case PlugPagPaymentControllerStatus.digitPassword:
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('Digite sua senha:'),
-                      Text(state.hiddenPassword),
-                    ],
-                  );
-                case PlugPagPaymentControllerStatus.error:
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('Erro:'),
-                      if (state.hasCode) Text(state.code!),
-                      if (state.hasMessage) Text(state.message!),
-                    ],
-                  );
-                case PlugPagPaymentControllerStatus.finished:
-                  return SingleChildScrollView(
-                    child: TransactionResultWidget(state.transactionResult!),
-                  );
-                case PlugPagPaymentControllerStatus.aborted:
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('Transação cancelada'),
-                      TextButton(
-                        onPressed: controller.restart,
-                        child: const Text('Tentar novamente'),
-                      ),
-                    ],
-                  );
-              }
-            },
-            child: _buildform(),
+                      .toList(),
+                  onChanged: (value) => setState(() {
+                    type = value!;
+                  }),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  initialValue: amount.toString().asBRL,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Align(widthFactor: 0, child: Text('R\$')),
+                    labelText: 'Valor da transação',
+                  ),
+                  validator: (value) {
+                    return (value ?? '').asDouble > 0
+                        ? null
+                        : 'Valor deve ser maior que R\$ 1.00';
+                  },
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    TextInputFormatter.withFunction(
+                      (_, newValue) =>
+                          TextEditingValue(text: newValue.text.asBRL),
+                    )
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      amount = value.asDouble;
+                      installments = PlugPag.A_VISTA_INSTALLMENT_QUANTITY;
+                      installmentType =
+                          PlugPagPaymentDataInstallmentType.aVista;
+                      dropdownState.currentState?.didChange(installmentType);
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  initialValue: userReference,
+                  keyboardType: TextInputType.text,
+                  maxLength: 10,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp("[0-9a-zA-Z]"))
+                  ],
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Referência',
+                  ),
+                  validator: (value) {
+                    return (value ?? '').isNotEmpty
+                        ? null
+                        : 'Não pode ser vazio';
+                  },
+                  onChanged: (value) => setState(() => userReference = value),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<PlugPagPaymentDataInstallmentType>(
+                  key: dropdownState,
+                  value: installmentType,
+                  items: PlugPagPaymentDataInstallmentType.values
+                      .map((e) =>
+                          DropdownMenuItem<PlugPagPaymentDataInstallmentType>(
+                            value: e,
+                            child: Text(e.name),
+                          ))
+                      .toList(),
+                  onChanged: loadingInstallments
+                      ? null
+                      : (value) => _calculateInstallments(value!),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Parcelamento',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (loadingInstallments)
+                  const Center(child: CircularProgressIndicator()),
+                if (!loadingInstallments &&
+                    installmentType !=
+                        PlugPagPaymentDataInstallmentType.aVista &&
+                    installmentOptions.isEmpty)
+                  const Text('Parcelamento não disponível'),
+                if (!loadingInstallments && installmentOptions.isNotEmpty)
+                  DropdownButtonFormField<int>(
+                    value: installmentOptions.first.quantity,
+                    items: installmentOptions
+                        .map((e) => DropdownMenuItem<int>(
+                              value: e.quantity,
+                              child: Text(
+                                  '${e.quantity} x ${e.amount.toString().asBRL.toString().asBRL} = ${e.total.toString().asBRL}'),
+                            ))
+                        .toList(),
+                    onChanged: (value) => setState(() => installments = value!),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Número de parcelas',
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _doPayment,
+                  child: const Text('Pagar'),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: doPayment,
-        child: const Icon(Icons.check),
-      ),
-    );
-  }
-
-  Widget _buildform() {
-    return Form(
-      key: _formKey,
-      autovalidateMode: AutovalidateMode.onUnfocus,
-      child: Column(
-        children: [
-          TextFormField(
-            controller: _valorTxtController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              prefixIcon: Align(widthFactor: 0, child: Text('R\$')),
-              labelText: 'Valor da transação',
-            ),
-            validator: (value) {
-              return (value ?? '').asDouble > 0
-                  ? null
-                  : 'Valor deve ser maior que R\$ 1.00';
-            },
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              TextInputFormatter.withFunction(
-                (_, newValue) => TextEditingValue(text: newValue.text.asBRL),
-              )
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _referenciaTxtController,
-            keyboardType: TextInputType.text,
-            maxLength: 10,
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp("[0-9a-zA-Z]"))
-            ],
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'Referência',
-            ),
-            validator: (value) {
-              return (value ?? '').isNotEmpty ? null : 'Não pode ser vazio';
-            },
-          ),
-        ],
       ),
     );
   }
@@ -185,148 +319,29 @@ class TransactionResultWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('Atributo')),
-          DataColumn(label: Text('Valor')),
-        ],
-        rows: [
-          if (transactionResult.message != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('Message:')),
-                DataCell(Text(transactionResult.message!)),
-              ],
-            ),
-          if (transactionResult.errorCode != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('ErrorCode:')),
-                DataCell(Text(transactionResult.errorCode!)),
-              ],
-            ),
-          if (transactionResult.transactionCode != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('TransactionCode:')),
-                DataCell(Text(transactionResult.transactionCode!)),
-              ],
-            ),
-          if (transactionResult.transactionId != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('TransactionId:')),
-                DataCell(Text(transactionResult.transactionId!)),
-              ],
-            ),
-          if (transactionResult.date != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('Date:')),
-                DataCell(Text(transactionResult.date!)),
-              ],
-            ),
-          if (transactionResult.time != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('Time:')),
-                DataCell(Text(transactionResult.time!)),
-              ],
-            ),
-          if (transactionResult.hostNsu != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('HostNsu:')),
-                DataCell(Text(transactionResult.hostNsu!)),
-              ],
-            ),
-          if (transactionResult.cardBrand != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('CardBrand:')),
-                DataCell(Text(transactionResult.cardBrand!)),
-              ],
-            ),
-          if (transactionResult.bin != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('Bin:')),
-                DataCell(Text(transactionResult.bin!)),
-              ],
-            ),
-          if (transactionResult.holder != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('Holder:')),
-                DataCell(Text(transactionResult.holder!)),
-              ],
-            ),
-          if (transactionResult.userReference != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('UserReference:')),
-                DataCell(Text(transactionResult.userReference!)),
-              ],
-            ),
-          if (transactionResult.terminalSerialNumber != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('TerminalSerialNumber:')),
-                DataCell(Text(transactionResult.terminalSerialNumber!)),
-              ],
-            ),
-          if (transactionResult.amount != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('Amount:')),
-                DataCell(Text(transactionResult.amount!)),
-              ],
-            ),
-          if (transactionResult.availableBalance != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('AvailableBalance:')),
-                DataCell(Text(transactionResult.availableBalance!)),
-              ],
-            ),
-          if (transactionResult.cardApplication != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('CardApplication:')),
-                DataCell(Text(transactionResult.cardApplication!)),
-              ],
-            ),
-          if (transactionResult.label != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('Label:')),
-                DataCell(Text(transactionResult.label!)),
-              ],
-            ),
-          if (transactionResult.holderName != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('HolderName:')),
-                DataCell(Text(transactionResult.holderName!)),
-              ],
-            ),
-          if (transactionResult.extendedHolderName != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('ExtendedHolderName:')),
-                DataCell(Text(transactionResult.extendedHolderName!)),
-              ],
-            ),
-          if (transactionResult.cardIssuerNationality != null)
-            DataRow(
-              cells: [
-                const DataCell(Text('CardIssuerNationality:')),
-                DataCell(Text(transactionResult.cardIssuerNationality!.name)),
-              ],
-            ),
-        ],
+    final map = transactionResult.toMap().entries.toList();
+    map.sort((a, b) => a.key.compareTo(b.key));
+    return Scaffold(
+      appBar: AppBar(title: const Text('Resultado da transação')),
+      body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            columns: const [
+              DataColumn(label: Text('Atributo')),
+              DataColumn(label: Text('Valor')),
+            ],
+            rows: map
+                .map((e) => DataRow(cells: [
+                      DataCell(Text(e.key)),
+                      DataCell(
+                        Text(e.value == null ? 'null' : e.value.toString()),
+                      )
+                    ]))
+                .toList(),
+          ),
+        ),
       ),
     );
   }

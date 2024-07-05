@@ -199,6 +199,52 @@ class PlugPagTransactionResult {
       partialPayRemainingAmount: map['partialPayRemainingAmount'].toString(),
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'message': message,
+      'errorCode': errorCode,
+      'transactionCode': transactionCode,
+      'transactionId': transactionId,
+      'date': date,
+      'time': time,
+      'hostNsu': hostNsu,
+      'cardBrand': cardBrand,
+      'bin': bin,
+      'holder': holder,
+      'userReference': userReference,
+      'terminalSerialNumber': terminalSerialNumber,
+      'amount': amount,
+      'availableBalance': availableBalance,
+      'cardApplication': cardApplication,
+      'label': label,
+      'holderName': holderName,
+      'extendedHolderName': extendedHolderName,
+      'cardIssuerNationality': cardIssuerNationality?.name,
+      'result': result,
+      'readerModel': readerModel,
+      'nsu': nsu,
+      'autoCode': autoCode,
+      'installments': installments,
+      'originalAmount': originalAmount,
+      'buyerName': buyerName,
+      'paymentType': paymentType,
+      'typeTransaction': typeTransaction,
+      'appIdentification': appIdentification,
+      'cardHash': cardHash,
+      'preAutoDueDate': preAutoDueDate,
+      'preAutoOriginalAmount': preAutoOriginalAmount,
+      'userRegistered': userRegistered,
+      'accumulatedValue': accumulatedValue,
+      'consumerIdentification': consumerIdentification,
+      'currentBalance': currentBalance,
+      'consumerPhoneNumber': consumerPhoneNumber,
+      'clubePagScreensIds': clubePagScreensIds,
+      'partialPayPartiallyAuthorizedAmount':
+          partialPayPartiallyAuthorizedAmount,
+      'partialPayRemainingAmount': partialPayRemainingAmount,
+    };
+  }
 }
 
 class PlugPagEventData {
