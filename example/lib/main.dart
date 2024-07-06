@@ -37,7 +37,9 @@ class _PagseguroPlugpagFlutterExampleState
             if (snapshot.hasData) {
               return snapshot.data!;
             } else if (snapshot.hasError) {
-              return Text(snapshot.error.toString());
+              return SingleChildScrollView(
+                child: Text(snapshot.error.toString()),
+              );
             } else {
               return const Center(child: CircularProgressIndicator());
             }

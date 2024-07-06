@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:pagseguro_plugpag_flutter/src/utils/exceptions/pagseguro_plugpag_flutter_exception.dart';
 
 import 'pagseguro_plugpag_flutter_platform_interface.dart';
 import 'utils/interfaces/plug_pag_data_class.dart';
@@ -34,8 +34,7 @@ class MethodChannelPagseguroPlugpagFlutter
         }).toList(),
       );
     } catch (e) {
-      if (kDebugMode) print(e);
-      throwException(e);
+      throwException(PagseguroPlugpagFlutterException.fromException(e));
       return Future.error(e);
     }
   }
@@ -52,10 +51,12 @@ class MethodChannelPagseguroPlugpagFlutter
           listener?.invoke(method, args);
           break;
         case "ppf_error":
-          throw Exception(call.arguments);
+          throw PagseguroPlugpagFlutterException.fromMethodChannel(
+            call.arguments,
+          );
       }
     } catch (e) {
-      throwException(e);
+      throwException(PagseguroPlugpagFlutterException.fromException(e));
       return Future.error(e);
     }
   }
@@ -65,11 +66,7 @@ class MethodChannelPagseguroPlugpagFlutter
   Map<String, dynamic> registerListener(PlugPagListenerClass listener) {
     final map = listener.toMethodChannel();
     final hash = map[PlugPagListenerClass.attrHash];
-    try {
-      listeners[hash] = listener;
-    } catch (e) {
-      throwException(e);
-    }
+    listeners[hash] = listener;
     return map;
   }
 

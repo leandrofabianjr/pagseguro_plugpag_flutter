@@ -5,14 +5,15 @@ import io.flutter.plugin.common.MethodChannel
 
 /** PagseguroPlugpagFlutterPlugin */
 class PagseguroPlugpagFlutterPlugin : FlutterPlugin {
-    private val CHANNEL = "pagseguro_plugpag_flutter_channel"
-
+    companion object {
+        private const val CHANNEL = "pagseguro_plugpag_flutter_channel"
+    }
     private lateinit var channel: MethodChannel
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, CHANNEL)
         channel.setMethodCallHandler(
-            PlugPagMethodCallHandler(flutterPluginBinding.applicationContext, channel)
+            PlugPagMethodCallHandler(flutterPluginBinding.applicationContext, channel::invokeMethod)
         )
     }
 
