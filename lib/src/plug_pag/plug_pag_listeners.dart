@@ -61,12 +61,12 @@ abstract class PlugPagPrinterListener extends PlugPagListenerClass {
   void invoke(String method, List<dynamic> args) {
     switch (method) {
       case 'onError':
-        final classArgs = (args[0]['ppf_args'] as Map<String, dynamic>);
+        final classArgs = (args[0]['ppf_args'] as Map);
         final result = PlugPagPrintResult.fromMethodChannel(classArgs);
         onError(result);
         break;
       case 'onSuccess':
-        final classArgs = (args[0]['ppf_args'] as Map<String, dynamic>);
+        final classArgs = (args[0]['ppf_args'] as Map);
         final result = PlugPagPrintResult.fromMethodChannel(classArgs);
         onSuccess(result);
         break;

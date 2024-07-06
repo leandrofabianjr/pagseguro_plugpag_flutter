@@ -25,11 +25,14 @@ class PagseguroPlugpagFlutterExample extends StatefulWidget {
 class _PagseguroPlugpagFlutterExampleState
     extends State<PagseguroPlugpagFlutterExample> with PlugPagImplementations {
   handleCall(Future<Widget> Function() callback) {
+    final completer = Completer<Widget>();
+    callback().then(completer.complete, onError: completer.completeError);
+    _plugPag.onException((e) => completer.completeError(e));
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         content: FutureBuilder(
-          future: callback(),
+          future: completer.future,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               return snapshot.data!;
@@ -82,6 +85,16 @@ class _PagseguroPlugpagFlutterExampleState
             title: const Text('Buscar última transação aprovada'),
             subtitle: const Text('asyncGetLastApprovedTransaction()'),
             onTap: () => handleCall(ultimaTransacaoAprovada),
+          ),
+          ListTile(
+            title: const Text('Reimpressão via cliente'),
+            subtitle: const Text('asyncReprintCustomerReceipt()'),
+            onTap: () => handleCall(reimpressaoViaCliente),
+          ),
+          ListTile(
+            title: const Text('Reimpressão via estabelecimento'),
+            subtitle: const Text('asyncReprintEstablishmentReceipt()'),
+            onTap: () => handleCall(reimpressaoViaEstabelecimento),
           ),
           ListTile(
             title: const Text('Imprimir imagem'),
@@ -164,6 +177,28 @@ mixin PlugPagImplementations {
     ));
     return completer.future;
   }
+
+  Future<Widget> reimpressaoViaCliente() {
+    final completer = Completer<Widget>();
+    _plugPag.asyncReprintCustomerReceipt(
+      ImpressaoListener(
+        title: 'Reimpressão via cliente',
+        handler: (value) => completer.complete(value),
+      ),
+    );
+    return completer.future;
+  }
+
+  Future<Widget> reimpressaoViaEstabelecimento() {
+    final completer = Completer<Widget>();
+    _plugPag.asyncReprintEstablishmentReceipt(
+      ImpressaoListener(
+        title: 'Reimpressão via estabelecimento',
+        handler: (value) => completer.complete(value),
+      ),
+    );
+    return completer.future;
+  }
 }
 
 class CalcularParcelasAsyncListener extends PlugPagInstallmentsListener {
@@ -192,23 +227,23 @@ class CalcularParcelasAsyncListener extends PlugPagInstallmentsListener {
   }
 }
 
-class PrinterListener extends PlugPagPrinterListener {
-  final void Function(Widget child) _handler;
-  PrinterListener(this._handler);
+class ImpressaoListener extends PlugPagPrinterListener {
+  ImpressaoListener({required this.title, required this.handler});
+  final String title;
+  final void Function(Widget child) handler;
 
   @override
   void onError(PlugPagPrintResult result) {
-    _handler(
-        Text('Erro de impressão: (${result.errorCode}) ${result.message}'));
+    handler(Text(
+      '$title:\nErro de impressão: (${result.errorCode}) ${result.message}',
+    ));
   }
 
   @override
   void onSuccess(PlugPagPrintResult result) {
-    _handler(
-      Text(
-        'Impressão concluída: ${result.message} - ${result.result} - ${result.steps}',
-      ),
-    );
+    handler(Text(
+      '$title:\nImpressão concluída: ${result.message} - ${result.result} - ${result.steps}',
+    ));
   }
 }
 

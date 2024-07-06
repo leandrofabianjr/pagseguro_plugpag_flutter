@@ -119,4 +119,16 @@ mixin PlugPagMethods {
         'asyncGetLastApprovedTransaction',
         [listener],
       );
+
+  void asyncReprintCustomerReceipt(PlugPagPrinterListener listener) =>
+      PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
+        'asyncReprintCustomerReceipt',
+        [listener],
+      );
+
+  void asyncReprintEstablishmentReceipt(PlugPagPrinterListener listener) =>
+      PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
+        'asyncReprintEstablishmentReceipt',
+        [listener],
+      );
 }
