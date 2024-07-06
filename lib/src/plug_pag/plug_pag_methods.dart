@@ -112,4 +112,11 @@ mixin PlugPagMethods {
         .invokePlugPagMethod('abort');
     return PlugPagAbortResult.fromMethodChannel(res['ppf_args']);
   }
+
+  void asyncGetLastApprovedTransaction(
+          PlugPagLastTransactionListener listener) =>
+      PagseguroPlugpagFlutterPlatform.instance.invokePlugPagMethod(
+        'asyncGetLastApprovedTransaction',
+        [listener],
+      );
 }

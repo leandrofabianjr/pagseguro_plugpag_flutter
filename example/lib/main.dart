@@ -4,9 +4,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' show get;
 import 'package:pagseguro_plugpag_flutter/pagseguro_plugpag_flutter.dart';
-import 'payment_page.dart';
+import 'package:pagseguro_plugpag_flutter_example/transaction_result_widget.dart';
 import 'package:path_provider/path_provider.dart'
     show getExternalCacheDirectories;
+
+import 'payment_page.dart';
 
 void main() {
   runApp(const MaterialApp(home: PagseguroPlugpagFlutterExample()));
@@ -75,6 +77,11 @@ class _PagseguroPlugpagFlutterExampleState
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => const PaymentPage()),
             ),
+          ),
+          ListTile(
+            title: const Text('Buscar última transação aprovada'),
+            subtitle: const Text('asyncGetLastApprovedTransaction()'),
+            onTap: () => handleCall(ultimaTransacaoAprovada),
           ),
           ListTile(
             title: const Text('Imprimir imagem'),
@@ -149,6 +156,14 @@ mixin PlugPagImplementations {
       }
     });
   }
+
+  Future<Widget> ultimaTransacaoAprovada() {
+    final completer = Completer<Widget>();
+    _plugPag.asyncGetLastApprovedTransaction(UltimaTransacaoListener(
+      (value) => completer.complete(value),
+    ));
+    return completer.future;
+  }
 }
 
 class CalcularParcelasAsyncListener extends PlugPagInstallmentsListener {
@@ -194,5 +209,26 @@ class PrinterListener extends PlugPagPrinterListener {
         'Impressão concluída: ${result.message} - ${result.result} - ${result.steps}',
       ),
     );
+  }
+}
+
+class UltimaTransacaoListener extends PlugPagLastTransactionListener {
+  final void Function(Widget child) _handler;
+  UltimaTransacaoListener(this._handler);
+
+  @override
+  void onError(PlugPagTransactionResult result) {
+    _handler(TransactionResultWidget(
+      result,
+      title: 'Erro ao buscar última transação',
+    ));
+  }
+
+  @override
+  void onRequestedLastTransaction(PlugPagTransactionResult result) {
+    _handler(TransactionResultWidget(
+      result,
+      title: 'Última transação',
+    ));
   }
 }

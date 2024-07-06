@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:pagseguro_plugpag_flutter/pagseguro_plugpag_flutter.dart';
 import 'package:provider/provider.dart';
 
+import 'transaction_result_widget.dart';
+
 class PaymentPage extends StatelessWidget {
   const PaymentPage({super.key});
 
@@ -305,41 +307,6 @@ class _PaymentFormWidgetState extends State<PaymentFormWidget> {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class TransactionResultWidget extends StatelessWidget {
-  const TransactionResultWidget(this.transactionResult, {super.key});
-
-  final PlugPagTransactionResult transactionResult;
-
-  @override
-  Widget build(BuildContext context) {
-    final map = transactionResult.toMap().entries.toList();
-    map.sort((a, b) => a.key.compareTo(b.key));
-    return Scaffold(
-      appBar: AppBar(title: const Text('Resultado da transação')),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columns: const [
-              DataColumn(label: Text('Atributo')),
-              DataColumn(label: Text('Valor')),
-            ],
-            rows: map
-                .map((e) => DataRow(cells: [
-                      DataCell(Text(e.key)),
-                      DataCell(
-                        Text(e.value == null ? 'null' : e.value.toString()),
-                      )
-                    ]))
-                .toList(),
           ),
         ),
       ),

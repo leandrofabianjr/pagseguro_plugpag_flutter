@@ -3,7 +3,7 @@ import '../utils/interfaces/plug_pag_listener_class.dart';
 
 abstract class PlugPagInstallmentsListener extends PlugPagListenerClass {
   @override
-  String get className => 'listener.PlugPagInstallmentsListener';
+  String get className => 'listeners.PlugPagInstallmentsListener';
 
   void onCalculateInstallments(List<String> installments);
   void onCalculateInstallmentsWithTotalAmount(
@@ -72,6 +72,33 @@ abstract class PlugPagPrinterListener extends PlugPagListenerClass {
         break;
       default:
         throw Exception('Método inválido em PlugPagPrinterListener: $method');
+    }
+  }
+}
+
+abstract class PlugPagLastTransactionListener extends PlugPagListenerClass {
+  void onError(PlugPagTransactionResult result);
+  void onRequestedLastTransaction(PlugPagTransactionResult result);
+
+  @override
+  String get className => 'listeners.PlugPagLastTransactionListener';
+
+  @override
+  void invoke(String method, List<dynamic> args) {
+    switch (method) {
+      case 'onError':
+        final classArgs = (args[0]['ppf_args'] as Map);
+        final result = PlugPagTransactionResult.fromMethodChannel(classArgs);
+        onError(result);
+        break;
+      case 'onRequestedLastTransaction':
+        final classArgs = (args[0]['ppf_args'] as Map);
+        final result = PlugPagTransactionResult.fromMethodChannel(classArgs);
+        onRequestedLastTransaction(result);
+        break;
+      default:
+        throw Exception(
+            'Método inválido em PlugPagLastTransactionListener: $method');
     }
   }
 }
