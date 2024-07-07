@@ -164,3 +164,27 @@ class PlugPagPaymentData extends PlugPagDataClass {
         isCarne,
       ];
 }
+
+class PlugPagVoidData extends PlugPagDataClass {
+  PlugPagVoidData(
+    this.transactionCode,
+    this.transactionId, [
+    this.printReceipt = false,
+    this.voidType = PlugPag.VOID_PAYMENT,
+  ]);
+
+  final String transactionCode;
+  final String transactionId;
+  final bool printReceipt;
+  final int voidType;
+
+  @override
+  String get className => 'PlugPagVoidData';
+  @override
+  List get params => [
+        transactionCode,
+        transactionId,
+        printReceipt,
+        voidType,
+      ];
+}

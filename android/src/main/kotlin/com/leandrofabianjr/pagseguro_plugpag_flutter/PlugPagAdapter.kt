@@ -11,7 +11,7 @@ class PlugPagAdapter(context: Context) {
 
     fun callMethod(
         methodName: String,
-        methodArguments: Any,
+        methodArguments: Any?,
         onResult: (result: Any?) -> Unit,
         onListenerResponse: (method: String, arguments: Any?) -> Unit,
     ) {

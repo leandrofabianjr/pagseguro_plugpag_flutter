@@ -132,4 +132,10 @@ mixin PlugPagMethods {
         'asyncReprintEstablishmentReceipt',
         [listener],
       );
+
+  Future<PlugPagTransactionResult> voidPayment(PlugPagVoidData voidData) async {
+    final res = await PagseguroPlugpagFlutterPlatform.instance
+        .invokePlugPagMethod('voidPayment', [voidData]);
+    return PlugPagTransactionResult.fromMethodChannel(res['ppf_args']);
+  }
 }

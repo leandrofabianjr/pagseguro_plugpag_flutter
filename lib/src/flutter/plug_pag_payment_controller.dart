@@ -145,6 +145,12 @@ class PlugPagPaymentController extends ChangeNotifier {
     notifyListeners();
     _plugPag.abort().then(_onAbortResult);
   }
+
+  void voidPayment(PlugPagVoidData voidData) {
+    state = PlugPagPaymentControllerState(status: _S.loading);
+    notifyListeners();
+    _plugPag.voidPayment(voidData).then(_onDoPaymentResult);
+  }
 }
 
 class _PlugPagPaymentEventListener extends PlugPagEventListener {

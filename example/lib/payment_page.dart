@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pagseguro_plugpag_flutter/pagseguro_plugpag_flutter.dart';
+import 'main.dart';
 import 'package:provider/provider.dart';
 
 import 'transaction_result_widget.dart';
@@ -38,6 +39,10 @@ class PaymentPage extends StatelessWidget {
                 )
               ]);
             case PlugPagPaymentControllerStatus.finished:
+              context
+                  .read<TemporaryData>()
+                  .transactions
+                  .add(state.transactionResult!);
               return TransactionResultWidget(state.transactionResult!);
             case PlugPagPaymentControllerStatus.error:
             case PlugPagPaymentControllerStatus.aborted:
@@ -176,8 +181,37 @@ class _PaymentFormWidgetState extends State<PaymentFormWidget> {
     }
   }
 
+  Future<PlugPagTransactionResult?> chooseTransaction() {
+    final transactions = context.read<TemporaryData>().transactions;
+    return showDialog<PlugPagTransactionResult>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Selecione uma transação'),
+        content: transactions.isEmpty
+            ? const Text('Nenhuma transação encontrada')
+            : ListView(
+                children: transactions
+                    .map((t) => ListTile(
+                          title: Text('${t.date} - R\$ ${t.amount}'),
+                          subtitle:
+                              Text('${t.transactionId} (${t.transactionCode})'),
+                          onTap: () => Navigator.of(context).pop(t),
+                        ))
+                    .toList(),
+              ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          )
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final controller = context.read<PlugPagPaymentController>();
     return Scaffold(
       appBar: AppBar(title: const Text('Novo pagamento')),
       body: SingleChildScrollView(
@@ -304,6 +338,17 @@ class _PaymentFormWidgetState extends State<PaymentFormWidget> {
                 ElevatedButton(
                   onPressed: _doPayment,
                   child: const Text('Pagar'),
+                ),
+                TextButton(
+                  onPressed: () => chooseTransaction().then((t) {
+                    if (t != null) {
+                      controller.voidPayment(PlugPagVoidData(
+                        t.transactionCode ?? '',
+                        t.transactionId ?? '',
+                      ));
+                    }
+                  }),
+                  child: const Text('Estornar transação'),
                 ),
               ],
             ),

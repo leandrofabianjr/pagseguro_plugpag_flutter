@@ -7,11 +7,19 @@ import 'package:pagseguro_plugpag_flutter/pagseguro_plugpag_flutter.dart';
 import 'package:pagseguro_plugpag_flutter_example/transaction_result_widget.dart';
 import 'package:path_provider/path_provider.dart'
     show getExternalCacheDirectories;
+import 'package:provider/provider.dart';
 
 import 'payment_page.dart';
 
+class TemporaryData extends ChangeNotifier {
+  List<PlugPagTransactionResult> transactions = [];
+}
+
 void main() {
-  runApp(const MaterialApp(home: PagseguroPlugpagFlutterExample()));
+  runApp(ChangeNotifierProvider(
+    create: (context) => TemporaryData(),
+    child: const MaterialApp(home: PagseguroPlugpagFlutterExample()),
+  ));
 }
 
 class PagseguroPlugpagFlutterExample extends StatefulWidget {
@@ -97,6 +105,11 @@ class _PagseguroPlugpagFlutterExampleState
             title: const Text('Reimpressão via estabelecimento'),
             subtitle: const Text('asyncReprintEstablishmentReceipt()'),
             onTap: () => handleCall(reimpressaoViaEstabelecimento),
+          ),
+          ListTile(
+            title: const Text('Cancelar execução'),
+            subtitle: const Text('abort()'),
+            onTap: () => handleCall(cancelarExecucao),
           ),
           ListTile(
             title: const Text('Imprimir imagem'),
@@ -201,6 +214,13 @@ mixin PlugPagImplementations {
     );
     return completer.future;
   }
+
+  Future<Widget> cancelarExecucao() => _plugPag.abort().then(
+        (value) => value.result == PlugPag.RET_OK
+            ? const Text('Execução cancelada')
+            : Text('Erro: ${value.result}'),
+        onError: (e) => Text('Erro: ${e.toString()}'),
+      );
 }
 
 class CalcularParcelasAsyncListener extends PlugPagInstallmentsListener {
