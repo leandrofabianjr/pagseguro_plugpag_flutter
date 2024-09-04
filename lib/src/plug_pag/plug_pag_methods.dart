@@ -57,10 +57,10 @@ mixin PlugPagMethods {
         .toList();
   }
 
-  Future<List<PlugPagInstallment>> calculateInstallmentsFromDouble(
-    double saleValue,
-    PlugPagPaymentDataInstallmentType installmentType,
-  ) async {
+  Future<List<PlugPagInstallment>> calculateInstallmentsFromDouble({
+    required double saleValue,
+    required PlugPagPaymentDataInstallmentType installmentType,
+  }) async {
     final stringSaleValue =
         saleValue.toStringAsFixed(2).replaceAll(RegExp('[^0-9]'), '');
     return calculateInstallments(stringSaleValue, installmentType);
