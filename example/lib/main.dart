@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' show get;
 import 'package:pagseguro_plugpag_flutter/pagseguro_plugpag_flutter.dart';
+import 'package:pagseguro_plugpag_flutter_example/nfc_page.dart';
 import 'package:pagseguro_plugpag_flutter_example/transaction_result_widget.dart';
 import 'package:path_provider/path_provider.dart'
     show getExternalCacheDirectories;
@@ -89,6 +90,13 @@ class _PagseguroPlugpagFlutterExampleState
             subtitle: const Text('doPayment()'),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => const PaymentPage()),
+            ),
+          ),
+          ListTile(
+            title: const Text('NFC'),
+            subtitle: const Text('doPayment()'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const NfcPage()),
             ),
           ),
           ListTile(

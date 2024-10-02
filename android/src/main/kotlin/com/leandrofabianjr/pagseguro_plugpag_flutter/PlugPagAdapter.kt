@@ -5,6 +5,7 @@ import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PlugPagAdapter(context: Context) {
     private val plugPag = PlugPag(context)
@@ -21,14 +22,15 @@ class PlugPagAdapter(context: Context) {
             methodName, *dynamicObj.methodParametersTypes
         )
 
-        CoroutineScope(Dispatchers.IO).launch {
-            kotlin.runCatching {
-                plugPagMethod.invoke(plugPag, *dynamicObj.methodParameters)
-            }.onSuccess {
-                val result = DynamicObjectHelper.objectOrArrayToMethodChannel(it)
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val res = withContext(Dispatchers.IO) {
+                    plugPagMethod.invoke(plugPag, *dynamicObj.methodParameters)
+                }
+                val result = DynamicObjectHelper.objectOrArrayToMethodChannel(res)
                 onResult(result)
-            }.onFailure {
-                throw it
+            } catch (e: Throwable) {
+                DynamicObjectHelper.sendCustomException(e, onListenerResponse)
             }
         }
     }

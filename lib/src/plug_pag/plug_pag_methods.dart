@@ -138,4 +138,30 @@ mixin PlugPagMethods {
         .invokePlugPagMethod('voidPayment', [voidData]);
     return PlugPagTransactionResult.fromMethodChannel(res['ppf_args']);
   }
+
+  Future<int> startNFCCardDirectly() async {
+    final res = await PagseguroPlugpagFlutterPlatform.instance
+        .invokePlugPagMethod('startNFCCardDirectly');
+    return res;
+  }
+
+  Future<int> stopNFCCardDirectly() async {
+    final res = await PagseguroPlugpagFlutterPlatform.instance
+        .invokePlugPagMethod('stopNFCCardDirectly');
+    return res;
+  }
+
+  void asyncReadNFC(
+    PlugPagNearFieldCardData cardData,
+    PlugPagNFCListener listener,
+  ) {}
+
+  Future<PlugPagNFCInfosResultDirectly> detectNfcCardDirectly(
+    int cardType,
+    int timeout,
+  ) async {
+    final res = await PagseguroPlugpagFlutterPlatform.instance
+        .invokePlugPagMethod('detectNfcCardDirectly', [cardType, timeout]);
+    return PlugPagNFCInfosResultDirectly.fromMethodChannel(res['ppf_args']);
+  }
 }

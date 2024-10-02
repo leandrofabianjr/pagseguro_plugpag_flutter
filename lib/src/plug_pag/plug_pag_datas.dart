@@ -188,3 +188,42 @@ class PlugPagVoidData extends PlugPagDataClass {
         voidType,
       ];
 }
+
+class PlugPagNearFieldCardData extends PlugPagDataClass {
+  static const int EMV_AB = 1;
+  static const int ISO14443_AB = 0;
+  static const String NFC_DATA = 'data';
+  static const int NFC_FINAL_SLOT = 63;
+  static const String NFC_PWD = 'pwd';
+  static const int ONLY_A = 2;
+  static const int ONLY_B = 3;
+  static const int ONLY_M = 4;
+  static const int SLOTS_SIZE = 64;
+  static const int TIMEOUT_LIMIT_IN_SECONDS = 10;
+  static const int serialVersionUID = 1;
+
+  int endSlot;
+  List<Map<String, int>> slots;
+  int startSlot;
+  int timeOutRead;
+  int typeCard;
+
+  PlugPagNearFieldCardData({
+    required this.endSlot,
+    required this.slots,
+    required this.startSlot,
+    required this.timeOutRead,
+    required this.typeCard,
+  });
+
+  @override
+  String get className => 'PlugPagNearFieldCardData';
+  @override
+  List get params => [
+        endSlot,
+        slots,
+        startSlot,
+        timeOutRead,
+        typeCard,
+      ];
+}

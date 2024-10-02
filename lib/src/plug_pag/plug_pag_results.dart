@@ -310,3 +310,62 @@ class PlugPagAbortResult {
     );
   }
 }
+
+class PlugPagNFCResult {
+  final int startSlot;
+  final int endSlot;
+  final List<Map<String, List<int>>> slots;
+  final int result;
+  final String? message;
+  final String? errorCode;
+
+  PlugPagNFCResult({
+    required this.startSlot,
+    required this.endSlot,
+    required this.slots,
+    required this.result,
+    this.message,
+    this.errorCode,
+  });
+
+  factory PlugPagNFCResult.fromMethodChannel(
+    Map<dynamic, dynamic> map,
+  ) {
+    return PlugPagNFCResult(
+      startSlot: map['startSlot'],
+      endSlot: map['endSlot'],
+      slots: map['slots'],
+      result: map['result'],
+      message: map['message'],
+      errorCode: map['errorCode'],
+    );
+  }
+}
+
+class PlugPagNFCInfosResultDirectly {
+  final int result;
+  final int? cardType;
+  final int? cid;
+  final List<int>? other;
+  final List<int>? serialNumber;
+
+  PlugPagNFCInfosResultDirectly({
+    required this.result,
+    this.cardType,
+    this.cid,
+    this.other,
+    this.serialNumber,
+  });
+
+  factory PlugPagNFCInfosResultDirectly.fromMethodChannel(
+    Map<dynamic, dynamic> map,
+  ) {
+    return PlugPagNFCInfosResultDirectly(
+      result: map['result'],
+      cardType: map['cardType'],
+      cid: map['cid'],
+      other: map['other']?.cast<int>(),
+      serialNumber: map['serialNumber']?.cast<int>(),
+    );
+  }
+}

@@ -1,5 +1,5 @@
-import 'plug_pag_results.dart';
 import '../utils/interfaces/plug_pag_listener_class.dart';
+import 'plug_pag_results.dart';
 
 abstract class PlugPagInstallmentsListener extends PlugPagListenerClass {
   @override
@@ -99,6 +99,32 @@ abstract class PlugPagLastTransactionListener extends PlugPagListenerClass {
       default:
         throw Exception(
             'Método inválido em PlugPagLastTransactionListener: $method');
+    }
+  }
+}
+
+abstract class PlugPagNFCListener extends PlugPagListenerClass {
+  void onError(PlugPagNFCResult result);
+  void onSuccess(PlugPagNFCResult result);
+
+  @override
+  String get className => 'PlugPagNFCListener';
+
+  @override
+  void invoke(String method, List<dynamic> args) {
+    switch (method) {
+      case 'onError':
+        final classArgs = (args[0]['ppf_args'] as Map);
+        final result = PlugPagNFCResult.fromMethodChannel(classArgs);
+        onError(result);
+        break;
+      case 'onSuccess':
+        final classArgs = (args[0]['ppf_args'] as Map);
+        final result = PlugPagNFCResult.fromMethodChannel(classArgs);
+        onSuccess(result);
+        break;
+      default:
+        throw Exception('Método inválido em PlugPagNFCListener: $method');
     }
   }
 }
