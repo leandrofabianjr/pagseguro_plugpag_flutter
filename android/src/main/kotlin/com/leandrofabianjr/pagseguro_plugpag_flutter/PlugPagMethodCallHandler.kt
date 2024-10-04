@@ -20,7 +20,8 @@ class PlugPagMethodCallHandler(
                 methodArguments = call.arguments,
                 methodName = call.method,
                 onListenerResponse = invokeMethod,
-                onResult = result::success,
+                onSuccess = result::success,
+                onFailure = result::error,
             )
 
         } catch (e: Exception) {

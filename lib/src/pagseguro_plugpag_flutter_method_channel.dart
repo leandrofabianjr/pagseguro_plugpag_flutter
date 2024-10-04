@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:pagseguro_plugpag_flutter/pagseguro_plugpag_flutter.dart';
 import 'package:pagseguro_plugpag_flutter/src/utils/exceptions/pagseguro_plugpag_flutter_exception.dart';
 
 import 'pagseguro_plugpag_flutter_platform_interface.dart';
@@ -19,9 +20,9 @@ class MethodChannelPagseguroPlugpagFlutter
   Future invokePlugPagMethod(
     String methodName, [
     List<dynamic>? methodParams,
-  ]) {
+  ]) async {
     try {
-      return methodChannel.invokeMethod(
+      return await methodChannel.invokeMethod(
         methodName,
         methodParams?.map((p) {
           if (p is PlugPagDataClass) {
@@ -34,8 +35,13 @@ class MethodChannelPagseguroPlugpagFlutter
         }).toList(),
       );
     } catch (e) {
+      if (e is PlatformException &&
+          e.code == PagseguroPlugpagFlutterException.ppfPlugpagError) {
+        final details = e.details as Map;
+        final ppEx = PlugPagException.fromMethodChannel(details['ppf_args']);
+        return Future.error(ppEx);
+      }
       throwException(PagseguroPlugpagFlutterException.fromException(e));
-      return Future.error(e);
     }
   }
 
@@ -51,13 +57,14 @@ class MethodChannelPagseguroPlugpagFlutter
           listener?.invoke(method, args);
           break;
         case "ppf_error":
-          throw PagseguroPlugpagFlutterException.fromMethodChannel(
+          final e = PagseguroPlugpagFlutterException.fromMethodChannel(
             call.arguments,
           );
+          throwException(e);
+          break;
       }
     } catch (e) {
       throwException(PagseguroPlugpagFlutterException.fromException(e));
-      return Future.error(e);
     }
   }
 

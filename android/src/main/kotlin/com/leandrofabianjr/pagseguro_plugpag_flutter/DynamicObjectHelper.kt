@@ -22,6 +22,7 @@ class DynamicObjectHelper(
         private const val PPF_INVOKE_LISTENER_METHOD = "ppf_invoke_listener_method"
         private const val PPF_INVOKE_LISTENER_METHOD_ARGS = "ppf_invoke_listener_method_args"
         private const val PPF_ERROR = "ppf_error"
+        const val PPF_PLUGPAG_ERROR = "ppf_plugpag_error"
         private const val PPF_ERROR_CODE = "ppf_error_code"
         private const val PPF_ERROR_MESSAGE = "ppf_error_message"
         private const val PPF_ERROR_DETAILS = "ppf_error_details"

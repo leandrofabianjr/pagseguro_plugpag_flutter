@@ -1,4 +1,3 @@
-import 'package:pagseguro_plugpag_flutter/src/utils/exceptions/pagseguro_plugpag_flutter_exception.dart';
 import 'package:pagseguro_plugpag_flutter/src/utils/interfaces/plug_pag_listener_class.dart';
 
 import '../pagseguro_plugpag_flutter_platform_interface.dart';
@@ -7,7 +6,7 @@ import 'plug_pag_listeners.dart';
 import 'plug_pag_results.dart';
 
 mixin PlugPagMethods {
-  void onException(Function(PagseguroPlugpagFlutterException ex)? cathError) {
+  void onException(Function(Exception ex)? cathError) {
     PagseguroPlugpagFlutterPlatform.instance.onException(cathError);
   }
 

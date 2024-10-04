@@ -4,6 +4,7 @@ import 'plug_pag_methods.dart';
 
 export 'plug_pag.dart';
 export 'plug_pag_datas.dart';
+export 'plug_pag_exception.dart';
 export 'plug_pag_listeners.dart';
 export 'plug_pag_results.dart';
 

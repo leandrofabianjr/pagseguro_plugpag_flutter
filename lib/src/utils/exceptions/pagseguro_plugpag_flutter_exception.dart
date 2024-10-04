@@ -4,6 +4,7 @@ class PagseguroPlugpagFlutterException implements Exception {
   static const _ppfErrorCode = "ppf_error_code";
   static const _ppfErrorMessage = "ppf_error_message";
   static const _ppfErrorDetails = "ppf_error_details";
+  static const ppfPlugpagError = "ppf_plugpag_error";
 
   PagseguroPlugpagFlutterException._({
     required this.message,
@@ -13,7 +14,7 @@ class PagseguroPlugpagFlutterException implements Exception {
 
   final String errorCode;
   final String message;
-  final String? details;
+  final dynamic details;
 
   factory PagseguroPlugpagFlutterException.fromMethodChannel(Map map) {
     return PagseguroPlugpagFlutterException._(
@@ -27,6 +28,7 @@ class PagseguroPlugpagFlutterException implements Exception {
     return PagseguroPlugpagFlutterException._(
       errorCode: unknownErrorCode,
       message: e.toString(),
+      details: e,
     );
   }
 
