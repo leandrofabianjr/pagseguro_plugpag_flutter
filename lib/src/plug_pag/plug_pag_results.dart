@@ -368,4 +368,15 @@ class PlugPagNFCInfosResultDirectly {
       serialNumber: map['serialNumber']?.cast<int>(),
     );
   }
+
+  String? get serialNumberAsHexString {
+    return serialNumber?.map((byte) => byte.toUnsignedHexString()).join('');
+  }
+}
+
+extension on int {
+  toUnsignedHexString() {
+    // convert signed integer to unsigned hex
+    return (this & 0xFF).toUnsigned(8).toRadixString(16).padLeft(2, '0');
+  }
 }

@@ -150,11 +150,6 @@ mixin PlugPagMethods {
     return res;
   }
 
-  void asyncReadNFC(
-    PlugPagNearFieldCardData cardData,
-    PlugPagNFCListener listener,
-  ) {}
-
   Future<PlugPagNFCInfosResultDirectly> detectNfcCardDirectly(
     int cardType,
     int timeout,

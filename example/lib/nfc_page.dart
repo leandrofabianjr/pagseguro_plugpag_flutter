@@ -11,7 +11,7 @@ class NfcPage extends StatefulWidget {
 }
 
 class _NfcPageState extends State<NfcPage> {
-  late final PlugPag plugPag;
+  late final NfcService _nfcService;
   NfcPageAction action = NfcPageAction.init;
 
   ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(
@@ -22,19 +22,18 @@ class _NfcPageState extends State<NfcPage> {
   Future doAction() {
     return switch (action) {
       NfcPageAction.init => Future.value(true),
-      NfcPageAction.startNfc => plugPag.startNFCCardDirectly(),
-      NfcPageAction.stopNfc => plugPag.stopNFCCardDirectly(),
+      NfcPageAction.startNfc => _nfcService.startNfc(),
+      NfcPageAction.stopNfc => _nfcService.stopNfc(),
       NfcPageAction.readNfc =>
-        plugPag.detectNfcCardDirectly(PlugPagNearFieldCardData.ONLY_M, 3),
+        _nfcService.readNfcCardSerial(const Duration(seconds: 10)),
     };
   }
 
   @override
   void initState() {
-    plugPag = PlugPag();
-    plugPag.onException((cathError) {
+    _nfcService = PlugPagNfcService(onUnexpectedError: (err) {
       showToast(SnackBar(
-        content: Text(cathError.toString()),
+        content: Text(err.toString()),
       ));
     });
     super.initState();
@@ -62,13 +61,9 @@ class _NfcPageState extends State<NfcPage> {
                   case NfcPageAction.startNfc:
                     return const Text('NFC Iniciado');
                   case NfcPageAction.readNfc:
-                    if (snapshot.data is PlugPagNearFieldCardData) {
-                      return Text(
-                        snapshot.data?.serialNumber?.toString() ?? 'Sem serial',
-                      );
-                    } else {
-                      return const Text('Inicie o NFC antes de ler!');
-                    }
+                    return Text(
+                      snapshot.data?.toString() ?? 'Sem serial',
+                    );
                   case NfcPageAction.stopNfc:
                     return const Text('NFC Parado');
                 }
@@ -103,5 +98,56 @@ class _NfcPageState extends State<NfcPage> {
         ],
       ),
     );
+  }
+}
+
+class NfcServiceException implements Exception {}
+
+class NfcServiceNotStartedException implements Exception {}
+
+class NfcServiceReadingException implements Exception {}
+
+abstract class NfcService {
+  Future<bool> startNfc();
+  Future<bool> stopNfc();
+  Future<String?> readNfcCardSerial(Duration timeout);
+}
+
+class PlugPagNfcService implements NfcService {
+  late final PlugPag _plugPag;
+
+  PlugPagNfcService({Function(Exception ex)? onUnexpectedError}) {
+    _plugPag = PlugPag();
+    _plugPag.onException(onUnexpectedError);
+  }
+
+  @override
+  Future<bool> startNfc() async {
+    await _plugPag.abort();
+    return _plugPag.startNFCCardDirectly().then(
+          (value) => value == PlugPag.NFC_RET_OK,
+          onError: (e) => throw NfcServiceException(),
+        );
+  }
+
+  @override
+  Future<bool> stopNfc() async {
+    await _plugPag.abort();
+    return _plugPag.stopNFCCardDirectly().then(
+          (value) => value == PlugPag.NFC_RET_OK,
+          onError: (e) => throw NfcServiceException(),
+        );
+  }
+
+  @override
+  Future<String?> readNfcCardSerial(Duration timeout) async {
+    final result = await _plugPag.detectNfcCardDirectly(
+      PlugPagNearFieldCardData.ONLY_M,
+      timeout.inSeconds,
+    );
+    if (result.result == PlugPag.NFC_RET_OK) {
+      return result.serialNumberAsHexString;
+    }
+    return null;
   }
 }
